@@ -74,7 +74,7 @@ Example:
 Categories=Programs;Games;Utils
 ```
 
-For each name in the Categories key there should be a section with same name containing its entries
+For each name in the `Categories` key there should be a section with same name containing its entries
 
 ```
 [categories]
