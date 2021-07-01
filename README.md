@@ -10,9 +10,7 @@ This is simple program launcher for Windows, intended for use on USB flash drive
 # How to use
 When you first open Program Launcher, you will find that it's empty.
 
-Start by adding a new category (tab) by clicking the 'Category' menu item, and then choosing 'Add category...' item, or you could use Ctrl+G keyboard shortcut.
-
-Then enter name of the new category into the newly created dialog, it can be for example 'Programs' or 'Games'.
+Start by adding a new category (tab) by clicking the 'Category' menu item, and then choosing 'Add category...' item, or use Ctrl+G keyboard shortcut. Then enter name of the new category into the newly created dialog, it can be for example 'Programs' or 'Games'.
 
 **Note:** category names must not contain semicolon ';' characters and must not be any of the following keywords: 'general', 'appereance' and 'categories'.
 
