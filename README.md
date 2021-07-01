@@ -30,15 +30,56 @@ Then enter name of the new category, it can be for example 'Programs' or 'Games'
 
 # Editing ProgramLauncher.ini file manually
 
-**Possible key names for programs entries**
-- <index>.Path=\Programs\7-Zip\32-bit\7zFM.exe
-- <index>.Path64=\Programs\7-Zip\7zFM.exe
-- <index>.PathIcon=\Programs\7-Zip\7zFM.exe
-- <index>.IconIndex=0
-- <index>.Name=7-Zip
-- <index>.Admin=0
-- <index>.AbsolutePaths=0
+**Sections:**
 
+[general]
+- ShowAppNames:
+specifies where to show entry labels, 0=don't show, 1=in tooltip, 2=under icon & in tooltip
+- CloseAfterLaunch: if 1, Program Launcher will exit after successful launching of the program
+- Language: not implemented
+- WindowWidth, WindowHeight: window dimensions
+- UseIconCaching: determines whether to use icon caching, see [Icon caching]
+
+[appereance]
+- IconSize: size of icons in pixels, should be one of standard icon sizes
+- IconSpacingHorizontal, IconSpacingVertical: icon spacings, in pixels
+
+[categories]
+- Categories: a semicolon delimited list of all categories (tabs)
+
+Example:
+```
+[categories]
+Categories=Programs;Games;Utils
+```
+
+For each name in the Categories key there should be a section with same name containing its entries
+
+```
+[categories]
+Categories=Programs;Games;Utils
+
+[Programs]
+#program entries
+
+[Games]
+#game entries
+
+[Utils]
+#utils entries
+```
+
+
+**Possible key names for programs entries**
+- `<index>.Path=\Programs\7-Zip\32-bit\7zFM.exe`
+- `<index>.Path64=\Programs\7-Zip\7zFM.exe`
+- `<index>.PathIcon=\Programs\7-Zip\7zFM.exe`
+- `<index>.IconIndex=0`
+- `<index>.Name=7-Zip`
+- `<index>.Admin=0`
+- `<index>.AbsolutePaths=0`
+
+# Icon caching
 
 # Installation
 Just copy the executable to your flash disk (or...)
