@@ -3,6 +3,7 @@ Since I have many programs on my USB flash drive, I needed a solution to simply 
 
 It can be also used to group Desktop shortcuts. If you have a lot of them, you can move those less used to Program Launcher.
 
+![Photo](https://github.com/barty32/program-launcher/blob/dev/pics/window.png)
 
 This is simple program launcher for Windows, intended for use on USB flash drives, where its drive letters is different on each computer. Main goal of this application is its portability. However, it can be run only on Windows.
 
