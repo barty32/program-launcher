@@ -47,7 +47,7 @@ In the following dialog there are many options, but most of them are auto-filled
 # Options
 Most of the options are self-explanatory, just try them out to see what they do. If you mess something up, you can always Reset to defaults, it will not delete any categories or entries.
 
-
+![options](https://github.com/barty32/program-launcher/blob/dev/pics/options.png)
 
 # Editing ProgramLauncher.ini file manually
 
@@ -68,7 +68,7 @@ specifies where to show entry labels, 0=don't show, 1=in tooltip, 2=under icon &
 `[categories]`
 - `Categories`: a semicolon delimited list of all categories (tabs)
 
-Example:
+**Example:**
 ```
 [categories]
 Categories=Programs;Games;Utils
@@ -91,9 +91,9 @@ Categories=Programs;Games;Utils
 ```
 Each category is one section in .ini file and each section can contain any amount of entries. Entries are saved in zero-based index. Each entry can contain these values:
 - `Path` path to the target program
-- `Path64` path to 64-bit executable of the program (optional, contains '0' if not used)
-- `PathIcon` path to icon (in most cases same as Path)
-- `IconIndex` index of the icon in file specified by PathIcon
+- `Path64` path to 64-bit executable of the program (optional, contains `0` if not used)
+- `PathIcon` path to icon (in most cases same as `Path`)
+- `IconIndex` index of the icon in file specified by `PathIcon`
 - `Name` displayed name
 - `Admin` run as admin
 - `AbsolutePaths` use absolute paths
