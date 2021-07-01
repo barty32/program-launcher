@@ -8,17 +8,36 @@ Start by adding a new category (tab) by clicking the 'Category' menu item, and t
 
 Then enter name of the new category, it can be for example 'Programs' or 'Games'.
 
-Note: category names must not contain semicolon (;) characters
+**Note:** category names must not contain semicolon (;) characters
 
 
 - Display name: this name is displayed under icon 
-- Path to file: 
+- Path to file: specifies path to the executable (you should use the 'Browse' button)
+
+- Path to 64-bit version of the program: if the target program also has its 64-bit version, then tick the checkbox and specify path to 64-bit executable in the text box
+- Path to icon: 
+- Absolute path: You should enable this if the target program is on different drive than Program Launcher (for example 'D:\Utils\Program Launcher\ProgramLauncher.exe' and 'C:\Program Files\HxD\HxD.exe')
+- Add to category: here select in which category the new entry should be added
+- Run as Administrator: run the target program as Admin
 
 
-Tip: If you use the 'Browse' button to find the program's executable, other fields of this dialog will be auto-filled
+
+**Tip:** If you use the 'Browse' button to find the program's executable, other fields of this dialog will be auto-filled if possible
 
 
 # Options
+
+
+# Editing ProgramLauncher.ini file manually
+
+**Possible key names for programs entries**
+- <index>.Path=\Programs\7-Zip\32-bit\7zFM.exe
+- <index>.Path64=\Programs\7-Zip\7zFM.exe
+- <index>.PathIcon=\Programs\7-Zip\7zFM.exe
+- <index>.IconIndex=0
+- <index>.Name=7-Zip
+- <index>.Admin=0
+- <index>.AbsolutePaths=0
 
 
 # Installation
