@@ -8,7 +8,7 @@ Start by adding a new category (tab) by clicking the 'Category' menu item, and t
 
 Then enter name of the new category, it can be for example 'Programs' or 'Games'.
 
-**Note:** category names must not contain semicolon (;) characters
+**Note:** category names must not contain semicolon ';' characters and must not be any of the following keywords: 'general', 'appereance' and 'categories'.
 
 
 - Display name: this name is displayed under icon 
@@ -26,7 +26,7 @@ Then enter name of the new category, it can be for example 'Programs' or 'Games'
 
 
 # Options
-
+Most of the options are self-explanatory, just try them out to see what they do. If you mess something up, you can always Reset to defaults, it will not delete any categories or entries.
 
 # Editing ProgramLauncher.ini file manually
 
@@ -68,6 +68,15 @@ Categories=Programs;Games;Utils
 [Utils]
 #utils entries
 ```
+Each category is one section in .ini file and each section can contain any amount of entries. Entries are saved in zero-based index. Each entry can contain these values:
+- Path: path to the target program
+- Path64: path to 64-bit executable of the program (optional, contains '0' if not used)
+- PathIcon: path to icon (in most cases same as Path)
+- IconIndex: index of the icon in file specified by PathIcon
+- Name: displayed name
+- Admin: run as admin
+- AbsolutePaths: use absolute paths
+
 
 
 **Possible key names for programs entries**
@@ -78,6 +87,30 @@ Categories=Programs;Games;Utils
 - `<index>.Name=7-Zip`
 - `<index>.Admin=0`
 - `<index>.AbsolutePaths=0`
+
+If you don't use absolute path, write paths without drive letter
+
+```
+0.Path=\Programs\HxD\HxD32.exe
+0.Path64=\Programs\HxD\HxD64.exe
+0.PathIcon=\Programs\HxD\HxD32.exe
+0.IconIndex=0
+0.Name=HxD
+0.Admin=0
+0.AbsolutePaths=0
+```
+
+but if you do, you must specify it in all paths
+```
+0.Path=A:\Programs\HxD\HxD32.exe
+0.Path64=A:\Programs\HxD\HxD64.exe
+0.PathIcon=A:\Programs\HxD\HxD32.exe
+0.IconIndex=0
+0.Name=HxD
+0.Admin=0
+0.AbsolutePaths=1
+```
+
 
 # Icon caching
 
