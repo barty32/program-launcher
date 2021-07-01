@@ -21,10 +21,10 @@ Now you should see the newly created tab in top of main window.
 Let's continue by adding a program entry (or button). Later you will be able to open a program using this entry (it works very similarly to shortcuts).
 
 Now you have multiple ways how to add a program entry:
-- 1. On the 'Button' menu, clicking 'Add new...'
-- 2. Right-clicking anywhere in window's area and selecting 'Add Button...'
-- 3. Using Ctrl+N shortcut
-- 4. Manually editing configuration file (advanced, @see Editing .ini file)
+1. On the 'Button' menu, clicking 'Add new...'
+2. Right-clicking anywhere in window's area and selecting 'Add Button...'
+3. Using Ctrl+N shortcut
+4. Manually editing configuration file (advanced, @see Editing .ini file)
 
 
 - Display name: this name is displayed under icon 
