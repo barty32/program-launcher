@@ -10,7 +10,7 @@ This is simple program launcher for Windows, intended for use on USB flash drive
 # How to use
 When you first open Program Launcher, you will find that it's empty.
 
-![Photo](https://github.com/barty32/program-launcher/pics/start.png)
+![Photo](https://github.com/barty32/program-launcher/blob/dev/pics/start.png)
 
 Start by adding a new category (tab) by clicking the 'Category' menu item, and then choosing 'Add category...' item, or use Ctrl+G keyboard shortcut. Then enter name of the new category into the newly created dialog, it can be for example 'Programs' or 'Games'.
 
