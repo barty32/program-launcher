@@ -20,25 +20,24 @@ Now you should see the newly created tab in top of main window.
 
 Let's continue by adding a program entry (or button). Later you will be able to open a program using this entry (it works very similarly to shortcuts).
 
-Now you have multiple ways how to add a program entry:
+You have multiple ways how to add a program entry:
 1. On the 'Button' menu, clicking 'Add new...'
 2. Right-clicking anywhere in window's area and selecting 'Add Button...'
 3. Using Ctrl+N shortcut
 4. Manually editing configuration file (advanced, @see Editing .ini file)
 
+In the following dialog there are many options, but most of them are auto-filled
 
 - Display name: this name is displayed under icon 
 - Path to file: specifies path to the executable (you should use the 'Browse' button)
-
-- Path to 64-bit version of the program: if the target program also has its 64-bit version, then tick the checkbox and specify path to 64-bit executable in the text box
-- Path to icon: 
+- Path to 64-bit version of the program: if the target program has also its 64-bit version, then tick the checkbox and specify path to 64-bit executable in the text box
+- Path to icon: in most cases same as 'Path to file', here you can change it to any icon
 - Absolute path: You should enable this if the target program is on different drive than Program Launcher (for example 'D:\Utils\Program Launcher\ProgramLauncher.exe' and 'C:\Program Files\HxD\HxD.exe')
 - Add to category: here select in which category the new entry should be added
-- Run as Administrator: run the target program as Admin
+- Run as Administrator: run the target program with elevated privileges
+- Icon preview: if path specified in 'Path to icon' is valid, then an icon preview is shown
 
-
-
-**Tip:** If you use the 'Browse' button to find the program's executable, other fields of this dialog will be auto-filled when possible
+**Tip:** If you use the 'Browse' button to find the program's executable, corresponding fields of this dialog will be auto-filled when possible
 
 
 # Options
@@ -154,8 +153,32 @@ These non-absolute paths are not relative paths! They are full paths with just r
 
 
 # Installation
-Just copy the executable to your flash disk (or...)
+Just copy the executable (and possibly the configuration file) to your flash disk or any directory with write access (otherwise saving configuration file will not work properly)
 
+
+# License (MIT)
+
+MIT License
+
+Copyright (c) 2021 barty12
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 
 An open source firmware for DSO-138 Oscilloscope. 
