@@ -53,20 +53,20 @@ Most of the options are self-explanatory, just try them out to see what they do.
 
 **Sections:**
 
-[general]
-- ShowAppNames:
+`[general]`
+- `ShowAppNames`:
 specifies where to show entry labels, 0=don't show, 1=in tooltip, 2=under icon & in tooltip
-- CloseAfterLaunch: if 1, Program Launcher will exit after successful launching of the program
-- Language: not implemented
-- WindowWidth, WindowHeight: window dimensions
-- UseIconCaching: determines whether to use icon caching, see [Icon caching]
+- `CloseAfterLaunch`: if 1, Program Launcher will exit after successful launching of the program
+- `Language`: not implemented
+- `WindowWidth`, `WindowHeight`: window dimensions
+- `UseIconCaching`: determines whether to use icon caching, see [Icon caching]
 
-[appereance]
-- IconSize: size of icons in pixels, should be one of standard icon sizes
-- IconSpacingHorizontal, IconSpacingVertical: icon spacings, in pixels
+`[appereance]`
+- `IconSize`: size of icons in pixels, should be one of standard icon sizes
+- `IconSpacingHorizontal`, `IconSpacingVertical`: icon spacings, in pixels
 
-[categories]
-- Categories: a semicolon delimited list of all categories (tabs)
+`[categories]`
+- `Categories`: a semicolon delimited list of all categories (tabs)
 
 Example:
 ```
