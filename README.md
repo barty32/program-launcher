@@ -1,14 +1,30 @@
-# program-launcher
+# Program Launcher
+Since I have many programs on my USB flash drive, I needed a solution to simply and quickly launch those programs. Browsing through my flash disk is slow and quite annoying, and I wanted to open them quickly from one place. This can't be done using shortcuts, because they need absolute paths. So I created Program Launcher.
+
+It can be also used to group Desktop shortcuts. If you have a lot of them, you can move those less used to Program Launcher.
+
+
+This is simple program launcher for Windows, intended for use on USB flash drives, where its drive letters is different on each computer. Main goal of this application is its portability. However, it can be run only on Windows.
 
 
 # How to use
-When you first open Program Launcher, 
+When you first open Program Launcher, you will find that it's empty.
 
-Start by adding a new category (tab) by clicking the 'Category' menu item, and then choosing 'Add category...', or you could use Ctrl+G shortcut.
+Start by adding a new category (tab) by clicking the 'Category' menu item, and then choosing 'Add category...' item, or you could use Ctrl+G keyboard shortcut.
 
-Then enter name of the new category, it can be for example 'Programs' or 'Games'.
+Then enter name of the new category into the newly created dialog, it can be for example 'Programs' or 'Games'.
 
 **Note:** category names must not contain semicolon ';' characters and must not be any of the following keywords: 'general', 'appereance' and 'categories'.
+
+Now you should see the newly created tab in top of main window.
+
+Let's continue by adding a program entry (or button). Later you will be able to open a program using this entry (it works very similarly to shortcuts).
+
+Now you have multiple ways how to add a program entry:
+- 1. On the 'Button' menu, clicking 'Add new...'
+- 2. Right-clicking anywhere in window's area and selecting 'Add Button...'
+- 3. Using Ctrl+N shortcut
+- 4. Manually editing configuration file (advanced, @see Editing .ini file)
 
 
 - Display name: this name is displayed under icon 
@@ -22,11 +38,13 @@ Then enter name of the new category, it can be for example 'Programs' or 'Games'
 
 
 
-**Tip:** If you use the 'Browse' button to find the program's executable, other fields of this dialog will be auto-filled if possible
+**Tip:** If you use the 'Browse' button to find the program's executable, other fields of this dialog will be auto-filled when possible
 
 
 # Options
 Most of the options are self-explanatory, just try them out to see what they do. If you mess something up, you can always Reset to defaults, it will not delete any categories or entries.
+
+
 
 # Editing ProgramLauncher.ini file manually
 
@@ -69,140 +87,80 @@ Categories=Programs;Games;Utils
 #utils entries
 ```
 Each category is one section in .ini file and each section can contain any amount of entries. Entries are saved in zero-based index. Each entry can contain these values:
-- Path: path to the target program
-- Path64: path to 64-bit executable of the program (optional, contains '0' if not used)
-- PathIcon: path to icon (in most cases same as Path)
-- IconIndex: index of the icon in file specified by PathIcon
-- Name: displayed name
-- Admin: run as admin
-- AbsolutePaths: use absolute paths
+- `Path` path to the target program
+- `Path64` path to 64-bit executable of the program (optional, contains '0' if not used)
+- `PathIcon` path to icon (in most cases same as Path)
+- `IconIndex` index of the icon in file specified by PathIcon
+- `Name` displayed name
+- `Admin` run as admin
+- `AbsolutePaths` use absolute paths
 
+**Example:**
+```
+[categories]
+Categories=Programs
 
+[Programs]
+#entry for first program
+0.Path=\Programs\7-Zip\32-bit\7zFM.exe
+0.Path64=\Programs\7-Zip\7zFM.exe
+0.PathIcon=\Programs\7-Zip\7zFM.exe
+0.IconIndex=0
+0.Name=7-Zip
+0.Admin=0
+0.AbsolutePaths=0
 
-**Possible key names for programs entries**
-- `<index>.Path=\Programs\7-Zip\32-bit\7zFM.exe`
-- `<index>.Path64=\Programs\7-Zip\7zFM.exe`
-- `<index>.PathIcon=\Programs\7-Zip\7zFM.exe`
-- `<index>.IconIndex=0`
-- `<index>.Name=7-Zip`
-- `<index>.Admin=0`
-- `<index>.AbsolutePaths=0`
+#entry for second program
+1.Path=\Programs\Advanced Uninstaller\uninstaller.exe
+1.Path64=0
+1.PathIcon=\Programs\Advanced Uninstaller\uninstaller.exe
+1.IconIndex=4
+1.Name=Advanced Uninstaller
+1.Admin=1
+1.AbsolutePaths=0
 
-If you don't use absolute path, write paths without drive letter
+...
+
+#entry for nth program
+n.Path=...
+n.Path64=...
+...
+
+```
+
+If you don't use absolute path, write paths without drive letter:
 
 ```
 0.Path=\Programs\HxD\HxD32.exe
 0.Path64=\Programs\HxD\HxD64.exe
 0.PathIcon=\Programs\HxD\HxD32.exe
-0.IconIndex=0
-0.Name=HxD
-0.Admin=0
 0.AbsolutePaths=0
 ```
 
-but if you do, you must specify it in all paths
+but if you do, you must specify it in all paths:
 ```
 0.Path=A:\Programs\HxD\HxD32.exe
 0.Path64=A:\Programs\HxD\HxD64.exe
 0.PathIcon=A:\Programs\HxD\HxD32.exe
-0.IconIndex=0
-0.Name=HxD
-0.Admin=0
 0.AbsolutePaths=1
 ```
+
+**Note:**
+These non-absolute paths are not relative paths! They are full paths with just removed drive letter (they always go from root folder of the drive). Also, the '\' in the beginning of the path is neccessary.
 
 
 # Icon caching
 
+
+
 # Installation
 Just copy the executable to your flash disk (or...)
+
+
 
 An open source firmware for DSO-138 Oscilloscope. 
 ![Photo](https://github.com/ardyesp/DLO-138/blob/master/pics/pic4.png)
 
-DSO-138 is an excellent piece of hardware based on ARM Cortex M3 core STM32F103 processor and sufficient for most beginner users. The stock firmware, while quite responsive, can use a few improvements. The main shortcoming which prompted the development of DLO-138 firmware is the inability to get waveform data into a computer for further analysis and the lack of a second channel. Engineers troubleshooting hardware issues need to mark reference points on waveform so having another analog or digital channel can greatly improve analysis. This firmware hopes to improve on these issues.
 
-## Features
-- Two analog channels
-- Two digital logic channels (SWDIO and SWDIO pins (PA13 and PA14) on board)
-- Serial port interface for captured waveform data
-- Trigger source selectable from Analog Channel 1 or Digital Channel
-- Option to use rotary encoder instead of + - and SEL switches
-- 2K sample depth
-
-This firmware can be used on stock DSO-138 hardware as well. Select one of the pre-compiled binaries to suit the board. Follow the firmware upgrade instructions for DSO-138. At any time, you can reflash DSO-138 with JYE Tech provided firmware.
-
-# Cost
-Extra features come at an additional cost. In the case of DLO-138, it is the loss of lowest timebase. Maximum sampling rate in DLO-138 is 20 µs/div instead of 10 µs/div. In the 20 µs/div range, firmware under-samples ADC channels, often reading same data twice. To use the second analog channel, analog front end has to be duplicated on a daughter board. On a stock hardware, this firmware can be used to provide two digital logic channels.
-
-# Build
-The build environment uses Arduino. For help with setting up IDE visit http://www.stm32duino.com
-
-For graphics output, this project depends on the Adafruit GFX Library v1.1.4.
-Install it via the Library Manager of your Arduino IDE.
-Other/newer versions of this library are likely to not compile or will give you a black screen.
-
-# Hardware
-Following changes can be applied selectively, to get maximum functionality from board. The firmware can be run on unmodified hardware as well.
-![Mod Schematic](https://github.com/ardyesp/DLO-138/blob/master/pics/HardwareMod.png)
-
-# Usage:
-	Push button in encoder (SEL if using switches) moves focus to next parameter
-	Left/Right turn in encoder (+/- if using switches) changes the parameter which is in focus
-	Short press OK to HOLD the waveform and output it on serial port
-	Long press OK button:
-	
-		Focus				Action
-		Trigger Level		Zero the trigger level to Analog channel 1
-		Wave X scrollbar	Center waveform on screen (at trigger point)
-		Wave Y cursor		Zero the cursor. If Analog CH1 coupling is GND, waveform reference base is set 
-		Other				Toggle on screen Analog CH1 statistics display
-
-	Press and hold OK button at power up to reset settings to default
-	
-# Flash binaries directly via serial interface
-
-When using Windows you can follow the guide from jyetech:
-https://jyetech.com/wp-content/uploads/2018/07/dso138-firmware-upgrade.pdf
-
-The guide uses the graphical programming tool provided by ST:
-https://www.st.com/en/development-tools/flasher-stm32.html
-
----
-
-When using Linux, you can use the open source command line tool stm32flash:
-
-Install stm32flash:
-```
-sudo apt-get install stm32flash
-```
-
-Connect your TTL-UART-to-USB converter to the DSO138 and bridge jumpers J1 and J2 on the back of the PCB just like in the above manual.
-
-Unlock the flash of the STM32:
-```
-sudo stm32flash /dev/ttyUSB0 -k -b 115200
-
-sudo stm32flash /dev/ttyUSB0 -u -b 115200
-```
-
-Flash new firmware:
-```
-sudo stm32flash /dev/ttyUSB0 -w binaries/DLO-138_switches_1.0.bin -b 115200
-```
-
-Remove the solder bridges on J1 and J2 and enjoy the alternative firmware on your DSO138.
- 		
-
-# References
-DSO-138 - http://www.jyetech.com/Products/LcdScope/e138.php
-
-STM32Duino - http://www.stm32duino.com
-
-STM32F103 - http://www.st.com/en/microcontrollers/stm32f103.html
-
-Adafruint Graphics Library - https://github.com/adafruit/Adafruit-GFX-Library
-
-Parallel 8 bit ILI9341 library - https://github.com/stevstrong/Adafruit_TFTLCD_8bit_STM32
 
 
