@@ -18,6 +18,8 @@ Start by adding a new category (tab) by clicking the 'Category' menu item, and t
 
 Now you should see the newly created tab in top of main window.
 
+![Photo2](https://github.com/barty32/program-launcher/blob/dev/pics/pic4.png)
+
 Let's continue by adding a program entry (or button). Later you will be able to open a program using this entry (it works very similarly to shortcuts).
 
 You have multiple ways how to add a program entry:
@@ -28,14 +30,16 @@ You have multiple ways how to add a program entry:
 
 In the following dialog there are many options, but most of them are auto-filled
 
-- Display name: this name is displayed under icon 
-- Path to file: specifies path to the executable (you should use the 'Browse' button)
-- Path to 64-bit version of the program: if the target program has also its 64-bit version, then tick the checkbox and specify path to 64-bit executable in the text box
-- Path to icon: in most cases same as 'Path to file', here you can change it to any icon
-- Absolute path: You should enable this if the target program is on different drive than Program Launcher (for example 'D:\Utils\Program Launcher\ProgramLauncher.exe' and 'C:\Program Files\HxD\HxD.exe')
-- Add to category: here select in which category the new entry should be added
-- Run as Administrator: run the target program with elevated privileges
-- Icon preview: if path specified in 'Path to icon' is valid, then an icon preview is shown
+![photo3](https://github.com/barty32/program-launcher/blob/dev/pics/add.png)
+
+- **Display name:** this name is displayed under icon 
+- **Path to file:** specifies path to the executable (you should use the 'Browse' button)
+- **Path to 64-bit version of the program:** if the target program has also its 64-bit version, then tick the checkbox and specify path to 64-bit executable in the text box
+- **Path to icon:** in most cases same as 'Path to file', here you can change it to any icon
+- **Absolute path:** You should enable this if the target program is on different drive than Program Launcher (for example 'D:\Utils\Program Launcher\ProgramLauncher.exe' and 'C:\Program Files\HxD\HxD.exe')
+- **Add to category:** here select in which category the new entry should be added
+- **Run as Administrator:** run the target program with elevated privileges
+- **Icon preview:** if path specified in 'Path to icon' is valid, then an icon preview is shown
 
 **Tip:** If you use the 'Browse' button to find the program's executable, corresponding fields of this dialog will be auto-filled when possible
 
@@ -43,53 +47,53 @@ In the following dialog there are many options, but most of them are auto-filled
 # Options
 Most of the options are self-explanatory, just try them out to see what they do. If you mess something up, you can always Reset to defaults, it will not delete any categories or entries.
 
-
+![options](https://github.com/barty32/program-launcher/blob/dev/pics/options.png)
 
 # Editing ProgramLauncher.ini file manually
 
 **Sections:**
 
-[general]
-- ShowAppNames:
+`[general]`
+- `ShowAppNames`:
 specifies where to show entry labels, 0=don't show, 1=in tooltip, 2=under icon & in tooltip
-- CloseAfterLaunch: if 1, Program Launcher will exit after successful launching of the program
-- Language: not implemented
-- WindowWidth, WindowHeight: window dimensions
-- UseIconCaching: determines whether to use icon caching, see [Icon caching]
+- `CloseAfterLaunch`: if 1, Program Launcher will exit after successful launching of the program
+- `Language`: not implemented
+- `WindowWidth`, `WindowHeight`: window dimensions
+- `UseIconCaching`: determines whether to use icon caching, see [Icon caching]
 
-[appereance]
-- IconSize: size of icons in pixels, should be one of standard icon sizes
-- IconSpacingHorizontal, IconSpacingVertical: icon spacings, in pixels
+`[appereance]`
+- `IconSize`: size of icons in pixels, should be one of standard icon sizes
+- `IconSpacingHorizontal`, `IconSpacingVertical`: icon spacings, in pixels
 
-[categories]
-- Categories: a semicolon delimited list of all categories (tabs)
+`[categories]`
+- `Categories`: a semicolon delimited list of all categories (tabs)
 
-Example:
+**Example:**
 ```
 [categories]
 Categories=Programs;Games;Utils
 ```
 
-For each name in the Categories key there should be a section with same name containing its entries
+For each name in the `Categories` key there should be a section with same name containing its entries
 
 ```
 [categories]
 Categories=Programs;Games;Utils
 
 [Programs]
-#program entries
+;program entries
 
 [Games]
-#game entries
+;game entries
 
 [Utils]
-#utils entries
+;utils entries
 ```
 Each category is one section in .ini file and each section can contain any amount of entries. Entries are saved in zero-based index. Each entry can contain these values:
 - `Path` path to the target program
-- `Path64` path to 64-bit executable of the program (optional, contains '0' if not used)
-- `PathIcon` path to icon (in most cases same as Path)
-- `IconIndex` index of the icon in file specified by PathIcon
+- `Path64` path to 64-bit executable of the program (optional, contains `0` if not used)
+- `PathIcon` path to icon (in most cases same as `Path`)
+- `IconIndex` index of the icon in file specified by `PathIcon`
 - `Name` displayed name
 - `Admin` run as admin
 - `AbsolutePaths` use absolute paths
@@ -100,7 +104,7 @@ Each category is one section in .ini file and each section can contain any amoun
 Categories=Programs
 
 [Programs]
-#entry for first program
+;entry for first program
 0.Path=\Programs\7-Zip\32-bit\7zFM.exe
 0.Path64=\Programs\7-Zip\7zFM.exe
 0.PathIcon=\Programs\7-Zip\7zFM.exe
@@ -109,7 +113,7 @@ Categories=Programs
 0.Admin=0
 0.AbsolutePaths=0
 
-#entry for second program
+;entry for second program
 1.Path=\Programs\Advanced Uninstaller\uninstaller.exe
 1.Path64=0
 1.PathIcon=\Programs\Advanced Uninstaller\uninstaller.exe
@@ -120,14 +124,14 @@ Categories=Programs
 
 ...
 
-#entry for nth program
+;entry for nth program
 n.Path=...
 n.Path64=...
 ...
 
 ```
 
-If you don't use absolute path, write paths without drive letter:
+If you don't use absolute paths, write paths without drive letter:
 
 ```
 0.Path=\Programs\HxD\HxD32.exe
@@ -145,7 +149,7 @@ but if you do, you must specify it in all paths:
 ```
 
 **Note:**
-These non-absolute paths are not relative paths! They are full paths with just removed drive letter (they always go from root folder of the drive). Also, the '\' in the beginning of the path is neccessary.
+These non-absolute paths are not relative paths! They are full paths with just removed drive letter (they always go from root folder of the drive). Also, the '\\' in the beginning of the path is neccessary.
 
 
 # Icon caching
