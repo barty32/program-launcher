@@ -5,6 +5,16 @@
 When you first open Program Launcher, 
 Start by adding a new category (tab) by clicking the 'Category' menu item, and then choosing 'Add category...', or you could use Ctrl+G shortcut.
 
+Then enter name of the new category, it can be for example 'Programs' or 'Games'.
+Note: category names must not contain semicolon (;) characters
+
+
+- Display name: this name is displayed under icon 
+- Path to file: 
+
+
+Tip: If you use the 'Browse' button to find the program's executable, other fields of this dialog will be auto-filled
+
 
 # Options
 
