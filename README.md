@@ -18,6 +18,8 @@ Start by adding a new category (tab) by clicking the 'Category' menu item, and t
 
 Now you should see the newly created tab in top of main window.
 
+![Photo2](https://github.com/barty32/program-launcher/blob/dev/pics/pic4.png)
+
 Let's continue by adding a program entry (or button). Later you will be able to open a program using this entry (it works very similarly to shortcuts).
 
 You have multiple ways how to add a program entry:
@@ -27,6 +29,8 @@ You have multiple ways how to add a program entry:
 4. Manually editing configuration file (advanced, @see Editing .ini file)
 
 In the following dialog there are many options, but most of them are auto-filled
+
+![photo3](https://github.com/barty32/program-launcher/blob/dev/pics/add.png)
 
 - Display name: this name is displayed under icon 
 - Path to file: specifies path to the executable (you should use the 'Browse' button)
