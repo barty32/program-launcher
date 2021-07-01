@@ -81,13 +81,13 @@ For each name in the `Categories` key there should be a section with same name c
 Categories=Programs;Games;Utils
 
 [Programs]
-#program entries
+;program entries
 
 [Games]
-#game entries
+;game entries
 
 [Utils]
-#utils entries
+;utils entries
 ```
 Each category is one section in .ini file and each section can contain any amount of entries. Entries are saved in zero-based index. Each entry can contain these values:
 - `Path` path to the target program
@@ -104,7 +104,7 @@ Each category is one section in .ini file and each section can contain any amoun
 Categories=Programs
 
 [Programs]
-#entry for first program
+;entry for first program
 0.Path=\Programs\7-Zip\32-bit\7zFM.exe
 0.Path64=\Programs\7-Zip\7zFM.exe
 0.PathIcon=\Programs\7-Zip\7zFM.exe
@@ -113,7 +113,7 @@ Categories=Programs
 0.Admin=0
 0.AbsolutePaths=0
 
-#entry for second program
+;entry for second program
 1.Path=\Programs\Advanced Uninstaller\uninstaller.exe
 1.Path64=0
 1.PathIcon=\Programs\Advanced Uninstaller\uninstaller.exe
@@ -124,14 +124,14 @@ Categories=Programs
 
 ...
 
-#entry for nth program
+;entry for nth program
 n.Path=...
 n.Path64=...
 ...
 
 ```
 
-If you don't use absolute path, write paths without drive letter:
+If you don't use absolute paths, write paths without drive letter:
 
 ```
 0.Path=\Programs\HxD\HxD32.exe
@@ -149,7 +149,7 @@ but if you do, you must specify it in all paths:
 ```
 
 **Note:**
-These non-absolute paths are not relative paths! They are full paths with just removed drive letter (they always go from root folder of the drive). Also, the '\' in the beginning of the path is neccessary.
+These non-absolute paths are not relative paths! They are full paths with just removed drive letter (they always go from root folder of the drive). Also, the '\\' in the beginning of the path is neccessary.
 
 
 # Icon caching
