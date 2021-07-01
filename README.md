@@ -32,14 +32,14 @@ In the following dialog there are many options, but most of them are auto-filled
 
 ![photo3](https://github.com/barty32/program-launcher/blob/dev/pics/add.png)
 
-- Display name: this name is displayed under icon 
-- Path to file: specifies path to the executable (you should use the 'Browse' button)
-- Path to 64-bit version of the program: if the target program has also its 64-bit version, then tick the checkbox and specify path to 64-bit executable in the text box
-- Path to icon: in most cases same as 'Path to file', here you can change it to any icon
-- Absolute path: You should enable this if the target program is on different drive than Program Launcher (for example 'D:\Utils\Program Launcher\ProgramLauncher.exe' and 'C:\Program Files\HxD\HxD.exe')
-- Add to category: here select in which category the new entry should be added
-- Run as Administrator: run the target program with elevated privileges
-- Icon preview: if path specified in 'Path to icon' is valid, then an icon preview is shown
+- **Display name:** this name is displayed under icon 
+- **Path to file:** specifies path to the executable (you should use the 'Browse' button)
+- **Path to 64-bit version of the program:** if the target program has also its 64-bit version, then tick the checkbox and specify path to 64-bit executable in the text box
+- **Path to icon:** in most cases same as 'Path to file', here you can change it to any icon
+- **Absolute path:** You should enable this if the target program is on different drive than Program Launcher (for example 'D:\Utils\Program Launcher\ProgramLauncher.exe' and 'C:\Program Files\HxD\HxD.exe')
+- **Add to category:** here select in which category the new entry should be added
+- **Run as Administrator:** run the target program with elevated privileges
+- **Icon preview:** if path specified in 'Path to icon' is valid, then an icon preview is shown
 
 **Tip:** If you use the 'Browse' button to find the program's executable, corresponding fields of this dialog will be auto-filled when possible
 
