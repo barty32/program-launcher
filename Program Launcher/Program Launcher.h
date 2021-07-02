@@ -17,6 +17,14 @@
 // - add helper ids to dialogs
 // - add icons to tab control
 // - add icons to menu items
+// - add launch shortcut
+// - add search function
+// - add auto folder scan
+// - add sort options
+// 
+// - save list view state
+// - save list view column order
+// - make better graphics
 // 
 // 
 // 
