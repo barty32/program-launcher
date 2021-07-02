@@ -3,6 +3,7 @@ Since I have many programs on my USB flash drive, I needed a solution to simply 
 
 It can be also used to group Desktop shortcuts. If you have a lot of them, you can move those less used to Program Launcher.
 
+![Photo](https://github.com/barty32/program-launcher/blob/dev/pics/window.png)
 
 This is simple program launcher for Windows, intended for use on USB flash drives, where its drive letters is different on each computer. Main goal of this application is its portability. However, it can be run only on Windows.
 
@@ -12,9 +13,9 @@ When you first open Program Launcher, you will find that it's empty.
 
 ![Photo](https://github.com/barty32/program-launcher/blob/dev/pics/start.png)
 
-Start by adding a new category (tab) by clicking the 'Category' menu item, and then choosing 'Add category...' item, or use Ctrl+G keyboard shortcut. Then enter name of the new category into the newly created dialog, it can be for example 'Programs' or 'Games'.
+Start by adding a new category (tab) by clicking the 'Category' menu item, and then choosing 'Add category...' item, or use Ctrl+G keyboard shortcut. Then enter name of the new category into the newly created dialog, it can be for example `Programs` or `Games`.
 
-**Note:** category names must not contain semicolon ';' characters and must not be any of the following keywords: 'general', 'appereance' and 'categories'.
+**Note:** category names must not contain semicolon `;` characters and must not be any of the following keywords: `general`, `appereance` and `categories`.
 
 Now you should see the newly created tab in top of main window.
 
@@ -149,7 +150,7 @@ but if you do, you must specify it in all paths:
 ```
 
 **Note:**
-These non-absolute paths are not relative paths! They are full paths with just removed drive letter (they always go from root folder of the drive). Also, the '\\' in the beginning of the path is neccessary.
+These non-absolute paths are not relative paths! They are full paths with just removed drive letter (they always go from root folder of the drive). Also, the `\` in the beginning of the path is neccessary.
 
 
 # Icon caching
