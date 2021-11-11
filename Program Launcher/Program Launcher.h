@@ -8,7 +8,7 @@
 //
 // Main header file for all source files, contains all macros, global variable declarations and function prototypes
 // 
-//  Copyright ©2021, barty12
+//  Copyright Â©2021, barty12
 // 
 // 
 // To-do:
@@ -91,8 +91,8 @@
 // 
 //-------------------------------------------------------------------------------------------------------------------------
 
-#define CATEGORY_NAME_DELIM TEXT(';')
-#define CATEGORY_NAME_DELIM_STRING TEXT(";")
+#define CATEGORY_NAME_DELIM L';'
+#define CATEGORY_NAME_DELIM_STRING L";"
 
 #define INI_FILE_NAME "ProgramLauncher.ini"
 #define ICON_CACHE_DIRECTORY L"IconCache"
@@ -102,6 +102,7 @@
 
 //resource IDs
 #define ID_LISTVIEW 65530
+#define ID_TABCONTROL 65531
 
 //constants
 #define MAX_LOADSTRING 100
@@ -173,12 +174,17 @@ ElapsedMicroseconds.QuadPart /= Frequency.QuadPart;
 #define PACK( __Declaration__ ) __pragma( pack(push, 1) ) __Declaration__ __pragma( pack(pop))
 #endif
 
+#pragma warning(disable : 26454)
 
-#ifdef __cplusplus
-#define GLOBAL extern
+#ifdef DEFINE_GLOBAL
+#define GLOBAL
 #else
-#define GLOBAL 
+#define GLOBAL extern
 #endif
+
+class CLauncherItem;
+class CCategory;
+class CProgramLauncher;
 
 //-------------------------------------------------------------------------------------------------------------------------
 // 
@@ -187,21 +193,16 @@ ElapsedMicroseconds.QuadPart /= Frequency.QuadPart;
 //-------------------------------------------------------------------------------------------------------------------------
 
 GLOBAL HINSTANCE hInst;        // current instance
+GLOBAL CWnd      CMainWnd;     // Main window class
+GLOBAL CProgramLauncher* Launcher;
 
-GLOBAL HWND hwndMain;
-GLOBAL HWND hwndTab;
-GLOBAL HWND hwndMainListView;
 GLOBAL BOOL bAllowEnChange;
 GLOBAL INT nCategoryCount;
 
 GLOBAL BOOL fRebuildIconCache;
 
 GLOBAL TCHAR szIniPath[MAX_PATH];
-GLOBAL WCHAR szError[16];
 
-GLOBAL LPWSTR lpszLoadString;
-
-GLOBAL TCHAR arrszCategoryList[MAX_CATEGORIES][CATEGORY_NAME_LEN];
 
 //-------------------------------------------------------------------------------------------------------------------------
 // 
@@ -234,8 +235,6 @@ typedef struct _LAUNCHERENTRY{
 // 
 //-------------------------------------------------------------------------------------------------------------------------
 
-ATOM MyRegisterClass(HINSTANCE hInstance, LPCTSTR lpszClassName);
-BOOL InitInstance(HINSTANCE hInstance, int nCmdShow, LPCTSTR lpszClassName);
 
 //window and dialog procedures
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
@@ -246,65 +245,164 @@ INT_PTR CALLBACK PrefDlgProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lPar
 
 // Ini file functions (ini.c)
 //INT GetIniString(LPCTSTR lpSectionName, LPCTSTR lpKeyName, LPCTSTR lpDefault, LPTSTR lpReturnedString, DWORD nSize, LPCTSTR lpIniName);
-INT GetSettingString(LPCTSTR lpszSectionName, LPCTSTR lpszKeyName, LPTSTR lpszBuffer, DWORD nSize, LPCTSTR lpszDefault);
-INT SetSettingString(LPCTSTR lpszSectionName, LPCTSTR lpszKeyName, LPCTSTR lpszString);
-UINT GetSettingInt(LPCTSTR lpszSectionName, LPCTSTR lpszKeyName, INT nDefault);
-INT SetSettingInt(LPCTSTR lpszSectionName, LPCTSTR lpszKeyName, INT nNumber);
-INT GetSettingButtonStruct(LPCTSTR lpszCategoryName, INT nButtonIndex, LPLAUNCHERENTRY lpStruct, BOOL bRequestAbsolute);
-INT SetSettingButtonStruct(LPCTSTR lpszCategoryName, INT nButtonIndex, LPLAUNCHERENTRY lpStruct);
-INT DeleteSettingKey(LPCTSTR lpszSection, LPCTSTR lpszKeyName);
-INT CreateIniFile();
+//INT GetSettingString(LPCTSTR lpszSectionName, LPCTSTR lpszKeyName, LPTSTR lpszBuffer, DWORD nSize, LPCTSTR lpszDefault);
+//INT SetSettingString(LPCTSTR lpszSectionName, LPCTSTR lpszKeyName, LPCTSTR lpszString);
+//UINT GetSettingInt(LPCTSTR lpszSectionName, LPCTSTR lpszKeyName, INT nDefault);
+//INT SetSettingInt(LPCTSTR lpszSectionName, LPCTSTR lpszKeyName, INT nNumber);
+//INT GetSettingButtonStruct(LPCTSTR lpszCategoryName, INT nButtonIndex, LPLAUNCHERENTRY lpStruct, BOOL bRequestAbsolute);
+//INT SetSettingButtonStruct(LPCTSTR lpszCategoryName, INT nButtonIndex, LPLAUNCHERENTRY lpStruct);
+//INT DeleteSettingKey(LPCTSTR lpszSection, LPCTSTR lpszKeyName);
+//INT CreateIniFile();
 
 //list view functions
-HWND CreateListView(HWND hwndParent);
-BOOL UpdateListView(HWND hwndListView, INT nIconSize);
-void ResizeListView(HWND hwndListView);
-void SwitchListView(HWND hwndListView, DWORD dwView);
-BOOL UpdateImageLists(HWND hwndListView, INT nIconSizeOfLargeImageList);
-INT DoListViewContextMenu(HWND hwndListView, INT pX, INT pY);
+
+
 
 // Category functions (category.c)
-INT AddCategory(LPCTSTR lpszNewCategoryName);
-INT RemoveCategory(UINT);
-INT RenameCategory(INT nCategoryIndex, LPTSTR lpszNewName);
-INT MoveCategory(INT nCategoryIndex, BOOL bLeft);
-INT GetCategoryCount();
-INT GetCategorySectionCount(UINT nCategoryIndex);
-INT LoadCategoryList();
-INT SaveCategoryList();
+//INT AddCategory(LPCTSTR lpszNewCategoryName);
+//INT RemoveCategory(UINT);
+//INT RenameCategory(INT nCategoryIndex, LPTSTR lpszNewName);
+//INT MoveCategory(INT nCategoryIndex, BOOL bLeft);
+//INT GetCategoryCount();
+//INT GetCategorySectionCount(UINT nCategoryIndex);
+//INT LoadCategoryList();
+//INT SaveCategoryList();
 
-//tab control functions
-HWND CreateTabControl(HWND);
-void ResizeTabControl(HWND hwndTabControl, HWND hwndParent);
 
 
 // Common funtions (CommonFunctions.c)
 INT     RemoveLetterFromPath    (LPWSTR lpszPath);
 INT     AddLetterToPath         (LPWSTR pszPath, INT cchSize);
 BOOL    Is64BitWindows          ();
-void    ForceWindowRepaint      (HWND hWnd);
 void    CenterDialog            (HWND hwndParent, HWND hwndDialog);
 void    ErrorHandlerEx          (LONG wLine, LPCWSTR lpszFile, LPCWSTR lpszFunctionName);
-INT     LaunchProgram           (INT nBtnId, INT nCategoryIndex);
+//INT     LaunchProgram           (INT nBtnId, INT nCategoryIndex);
 void    UpdateMenu              (HWND hwndListView, HMENU hMenu);
-INT     DoTabControlContextMenu (INT iItemId, INT pX, INT pY);
-LPWSTR  LoadLocalString         (UINT uID);
 INT     GetIconIndexFromPath    (LPWSTR pszIconPath);
-
-//other functions
-INT RemoveButton(INT nBtnIndex, INT nCategoryIndex);
-INT MoveButton(INT nButtonIndex, BOOL bLeft);
-
 
 
 INT ChangeSliderValue(HWND hwndSlider, HWND hwndEditBox, INT GetValueFrom, INT nMaxValue, LPNMUPDOWN lpstSpinValue);
 
 
 //icon functions
-HICON LoadIconForButton(INT nBtnId, INT nCategoryIndex, INT nIconSize);
-INT SaveIconFromResource(INT nCategoryIndex, INT nButtonIndex);
+INT SaveIconFromResource(LPCWSTR lpszResourcePath, WORD iIconIndex, LPCWSTR lpszResultFileName);
 INT RebuildIconCache();
 
+//C++ functions
+wstring ExpandEnvStrings(wstring& source);
+wstring RemoveFileSpecFromPath(wstring& path);
+wstring GetString(UINT uID);
+
+int GetElementCount(LPCWSTR lpszCategory);
+
+//-------------------------------------------------------------------------------------------------------------------------
+// 
+//                                        C++ Classes
+// 
+//-------------------------------------------------------------------------------------------------------------------------
+
+
+class CLauncherItem{
+public:
+	CCategory* ptrParent;
+	int parentIndex;
+
+	wstring wsPath;		//path to the executable
+	wstring wsPath64;	//path to the 64-bit version of the executable
+	wstring wsPathIcon;	//path to the icon
+	wstring wsName;		//name that is displayed under icon / in tooltip
+	int     iIconIndex;
+	bool   bAdmin;		//run program as admin
+	bool   bAbsolute;	//use absolute paths
+
+	HICON hItemIcon = nullptr;
+
+	CLauncherItem(CCategory* ptrParent, int parentIndex, wstring wsName, wstring wsPath, wstring wsPathIcon = L"", int iIconIndex = 0, wstring wsPath64 = L"", bool bAdmin = false, bool bAbsolute = false);
+	~CLauncherItem();
+	
+	HICON loadIcon(int nIconSize);
+
+	int Edit();
+	// Removes itself
+	void Remove();
+	int Launch();
+	void InsertIntoListView();
+	void UpdateInListView();
+};
+
+class CCategory{
+public:
+	CProgramLauncher* ptrParent;
+	int parentIndex;
+
+	wstring wsCategoryName;
+	vector<shared_ptr<CLauncherItem>> vItems;
+
+	CImageList imSmall;
+	CImageList imLarge;
+
+	CCategory(CProgramLauncher* ptrParent, int parentIndex, wstring wsName);
+	int MoveItem(int index, int newPos);
+
+	CLauncherItem* GetItem(int index);
+	int GetSelectedItemIndex();
+	int GetFocusedItemIndex();
+	CLauncherItem* GetSelectedItem();
+
+	void ReindexItems(int iStart = 0);
+};
+
+class CProgramLauncher{
+public:
+	vector<shared_ptr<CCategory>> vCategories;
+	//HWND hwndTab = nullptr;
+	CTabCtrl CTab;
+	CListView CList;
+	HWND hwndMainListView = nullptr;
+	
+
+	struct _options{
+		int ShowAppNames = DEFAULT_SHOWAPPNAMES;
+		bool CloseAfterLaunch = DEFAULT_CLOSEAFTERLAUNCH;
+		int WindowWidth = DEFAULT_WINDOW_WIDTH;
+		int WindowHeight = DEFAULT_WINDOW_HEIGHT;
+		bool UseIconCaching = DEFAULT_USEICONCACHING;
+
+		int IconSize = DEFAULT_ICON_SIZE;
+		int IconSpacingHorizontal = DEFAULT_HORZ_SPACING;
+		int IconSpacingVertical = DEFAULT_VERT_SPACING;
+	} options;
+
+	int Init();
+	int Exit();
+	int CreateTabControl();
+	void ResizeTabControl();
+	INT DoTabControlContextMenu(INT iItemId, INT pX, INT pY);
+
+	int NewItem();
+
+	int NewCategory();
+	int RemoveCategory(int index);
+	int RenameCategory(int index);
+	int MoveCategory(int index, int newPos);
+
+	CCategory* GetCategory(int index);
+	int GetCurrentCategoryIndex();
+	CCategory* GetCurrentCategory();
+
+	//list view
+	int CreateListView();
+	BOOL UpdateListView();
+	void ResizeListView();
+	void SwitchListView(DWORD dwView);
+	BOOL UpdateImageLists(INT nIconSizeOfLargeImageList);
+	INT DoListViewContextMenu(INT pX, INT pY);
+};
+
+wstring ReadIniString(LPCWSTR lpszSectionName, LPCWSTR lpszKeyName, LPCWSTR lpszDefault = L"");
+int ReadIniInt(LPCWSTR lpszSectionName, LPCWSTR lpszKeyName, int iDefault = 0);
+int WriteIniString(LPCWSTR lpszSectionName, LPCWSTR lpszKeyName, LPCWSTR lpszValue);
+wstring ReadIniValue(LPCWSTR lpszSectionName, LPCWSTR lpszKeyName);
 
 
 

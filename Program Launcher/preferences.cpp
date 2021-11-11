@@ -2,8 +2,8 @@
 #include "framework.h"
 #include "Program Launcher.h"
 
-
 INT_PTR CALLBACK PrefDlgProc(HWND hDlg, UINT Message, WPARAM wParam, LPARAM lParam){
+	return 0;/*
 	static DWORD dwCurrentIconSpacing;
 	static INT nCurrentIconSize;
 	static INT nCurrentAppNamesState;
@@ -267,7 +267,7 @@ INT_PTR CALLBACK PrefDlgProc(HWND hDlg, UINT Message, WPARAM wParam, LPARAM lPar
 		default:
 			return FALSE;
 	}
-	return (INT_PTR)TRUE;
+	return (INT_PTR)TRUE;*/
 }
 
 

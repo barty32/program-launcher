@@ -76,27 +76,30 @@
 #define IDC_PROGRAMLAUNCHER             1030
 #define IDC_USERINPUTDLGEDIT            1031
 #define IDC_ABOUT_LINK                  1032
-#define ID_CATEGORY_ADDCATEGORY         32771
-#define ID_BUTTON_ADDNEWBUTTON          32772
-#define ID_CATEGORY_MOVELEFT            32773
-#define ID_CATEGORY_MOVERIGHT           32774
-#define ID_CATEGORY_REMOVECURRENTCATEGORY 32775
-#define ID_CATEGORY_RENAMECURRENTCATEGORY 32776
-#define ID_HELP_HELPTOPICS              32777
-#define ID_POPUPCATEGORY_MOVELEFT       32784
-#define ID_POPUPCATEGORY_MOVERIGHT      32785
-#define ID_POPUPCATEGORY_REMOVECATEGORY 32786
-#define ID_POPUPCATEGORY_RENAME         32787
-#define ID_VIEW_DETAILS                 32788
-#define ID_VIEW_LARGEICONS              32789
-#define ID_VIEW_LIST                    32790
-#define ID_VIEW_SMALLICONS              32791
-#define ID_BUTTON_LAUNCH                32792
-#define ID_BUTTON_EDIT                  32793
-#define ID_BUTTON_MOVELEFT              32794
-#define ID_BUTTON_MOVERIGHT             32795
-#define ID_BUTTON_REMOVE                32796
-#define IDC_STATIC                      -1
+#define IDM_CATEGORY_ADDCATEGORY         771
+#define IDM_BUTTON_ADDNEWBUTTON          772
+#define IDM_CATEGORY_MOVELEFT            773
+#define IDM_CATEGORY_MOVERIGHT           774
+#define IDM_CATEGORY_REMOVECURRENTCATEGORY 775
+#define IDM_CATEGORY_RENAMECURRENTCATEGORY 776
+#define IDM_HELP_HELPTOPICS              777
+#define IDM_POPUPCATEGORY_MOVELEFT       784
+#define IDM_POPUPCATEGORY_MOVERIGHT      785
+#define IDM_POPUPCATEGORY_REMOVECATEGORY 786
+#define IDM_POPUPCATEGORY_RENAME         787
+#define IDM_VIEW_DETAILS                 788
+#define IDM_VIEW_LARGEICONS              789
+#define IDM_VIEW_LIST                    790
+#define IDM_VIEW_SMALLICONS              791
+#define IDM_BUTTON_LAUNCH                792
+#define IDM_BUTTON_EDIT                  793
+#define IDM_BUTTON_MOVELEFT              794
+#define IDM_BUTTON_MOVERIGHT             795
+#define IDM_BUTTON_REMOVE                796
+
+#ifndef IDC_STATIC
+#define IDC_STATIC -1
+#endif
 
 // Next default values for new objects
 // 
