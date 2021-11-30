@@ -2,10 +2,10 @@
 // Microsoft Visual C++ generated include file.
 // Used by ProgramLauncher.rc
 //
-#define IDR_BTNMENU                     101
-#define IDR_CATMENU                     102
-#define IDI_PROGRAMLAUNCHER             103
-#define IDI_DEFAULT                     104
+#define IDC_PROGRAMLAUNCHER             101
+#define IDI_DEFAULT                     102
+#define IDR_BTNMENU                     103
+#define IDR_CATMENU                     104
 #define IDD_ABOUTBOX                    105
 #define IDD_BTNSETTINGDLG               106
 #define IDD_PREFDLG                     107
@@ -14,6 +14,9 @@
 #define IDM_EXIT                        110
 #define IDM_FILE_PREF                   111
 #define IDM_LAUNCH                      112
+#define IDM_VIEW_RESETCOLUMNS           113
+#define IDM_SAVE                        114
+#define IDM_REFRESH                     115
 #define IDS_APP_TITLE                   200
 #define IDS_ERROR                       201
 #define IDS_REMOVE_BTN_PROMPT           202
@@ -44,6 +47,26 @@
 #define IDS_COL_ICON_INDEX              227
 #define IDS_COL_RUN_AS_ADMIN            228
 #define IDS_COL_ABS_PATHS               229
+#define IDM_CATEGORY_ADDCATEGORY        771
+#define IDM_BUTTON_ADDNEWBUTTON         772
+#define IDM_CATEGORY_MOVELEFT           773
+#define IDM_CATEGORY_MOVERIGHT          774
+#define IDM_CATEGORY_REMOVECURRENTCATEGORY 775
+#define IDM_CATEGORY_RENAMECURRENTCATEGORY 776
+#define IDM_HELP_HELPTOPICS             777
+#define IDM_POPUPCATEGORY_MOVELEFT      784
+#define IDM_POPUPCATEGORY_MOVERIGHT     785
+#define IDM_POPUPCATEGORY_REMOVECATEGORY 786
+#define IDM_POPUPCATEGORY_RENAME        787
+#define IDM_VIEW_DETAILS                788
+#define IDM_VIEW_LARGEICONS             789
+#define IDM_VIEW_LIST                   790
+#define IDM_VIEW_SMALLICONS             791
+#define IDM_BUTTON_LAUNCH               792
+#define IDM_BUTTON_EDIT                 793
+#define IDM_BUTTON_MOVELEFT             794
+#define IDM_BUTTON_MOVERIGHT            795
+#define IDM_BUTTON_REMOVE               796
 #define IDC_ABOUT_VERSION               1001
 #define IDC_BTNDLG64CHECK               1002
 #define IDC_BTNDLGABSCHECK              1003
@@ -73,42 +96,17 @@
 #define IDC_PREFDLG_VICONSPACINGEDIT    1027
 #define IDC_PREFDLG_VICONSPACINGSLIDER  1028
 #define IDC_PREFDLG_VICONSPACING_SPIN   1029
-#define IDC_PROGRAMLAUNCHER             1030
-#define IDC_USERINPUTDLGEDIT            1031
-#define IDC_ABOUT_LINK                  1032
-#define IDM_CATEGORY_ADDCATEGORY         771
-#define IDM_BUTTON_ADDNEWBUTTON          772
-#define IDM_CATEGORY_MOVELEFT            773
-#define IDM_CATEGORY_MOVERIGHT           774
-#define IDM_CATEGORY_REMOVECURRENTCATEGORY 775
-#define IDM_CATEGORY_RENAMECURRENTCATEGORY 776
-#define IDM_HELP_HELPTOPICS              777
-#define IDM_POPUPCATEGORY_MOVELEFT       784
-#define IDM_POPUPCATEGORY_MOVERIGHT      785
-#define IDM_POPUPCATEGORY_REMOVECATEGORY 786
-#define IDM_POPUPCATEGORY_RENAME         787
-#define IDM_VIEW_DETAILS                 788
-#define IDM_VIEW_LARGEICONS              789
-#define IDM_VIEW_LIST                    790
-#define IDM_VIEW_SMALLICONS              791
-#define IDM_BUTTON_LAUNCH                792
-#define IDM_BUTTON_EDIT                  793
-#define IDM_BUTTON_MOVELEFT              794
-#define IDM_BUTTON_MOVERIGHT             795
-#define IDM_BUTTON_REMOVE                796
-
-#ifndef IDC_STATIC
-#define IDC_STATIC -1
-#endif
+#define IDC_USERINPUTDLGEDIT            1030
+#define IDC_ABOUT_LINK                  1031
+#define IDC_STATIC                      -1
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        206
-#define _APS_NEXT_COMMAND_VALUE         32804
-#define _APS_NEXT_CONTROL_VALUE         1033
-#define _APS_NEXT_SYMED_VALUE           101
+#define _APS_NEXT_COMMAND_VALUE         799
+#define _APS_NEXT_CONTROL_VALUE         1032
+#define _APS_NEXT_SYMED_VALUE           116
 #endif
 #endif

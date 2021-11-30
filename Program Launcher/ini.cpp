@@ -10,17 +10,6 @@
 // 
 // Functions included in this file:
 // 
-//		INT GetSettingString(LPCTSTR Section, LPCTSTR Key, LPTSTR pszBuffer, DWORD nSize, LPCTSTR lpDefault);
-//		
-//		INT SetSettingString(LPCTSTR Section, LPCTSTR Key, LPCTSTR lpString);
-//		
-//		UINT GetSettingInt(LPCTSTR Section, LPCTSTR Key, INT nDefault);
-//		
-//		INT SetSettingInt(LPCTSTR Section, LPCTSTR Key, INT nNumber);
-//		
-//		INT GetSettingButtonStruct(LPCTSTR lpszCategoryName, INT nButtonIndex, LaunchButton* lpStruct, UINT uSizeStruct, BOOL bRequestAbsolute);
-//		
-//		INT SetSettingButtonStruct(LPCTSTR lpszCategoryName, INT nButtonIndex, LaunchButton* lpStruct, UINT uSizeStruct);
 //		
 //		INT DeleteSettingKey(LPCTSTR lpszSection, LPCTSTR lpszKeyName);
 //		
@@ -29,9 +18,13 @@
 //  Copyright ©2021, barty12
 //
 
+#include "pch.h"
 #include "Program Launcher.h"
 
 
+
+
+/*
 static wstring trim(const wstring& s){
 	auto start = s.begin();
 	while(start != s.end() && std::isspace(*start)){
@@ -44,87 +37,6 @@ static wstring trim(const wstring& s){
 
 	return wstring(start, end + 1);
 }
-
-int CProgramLauncher::Init(){
-
-	//load options
-	options.ShowAppNames =     ReadIniInt(L"general", L"ShowAppNames", DEFAULT_SHOWAPPNAMES);
-	options.CloseAfterLaunch = ReadIniInt(L"general", L"CloseAfterLaunch", DEFAULT_CLOSEAFTERLAUNCH);
-	options.WindowWidth =      ReadIniInt(L"general", L"WindowWidth", DEFAULT_WINDOW_WIDTH);
-	options.WindowHeight =     ReadIniInt(L"general", L"WindowHeight", DEFAULT_WINDOW_HEIGHT);
-	options.UseIconCaching =   ReadIniInt(L"general", L"UseIconCaching", DEFAULT_USEICONCACHING);
-
-	//appereance
-	options.IconSize =              ReadIniInt(L"appereance", L"IconSize", DEFAULT_SHOWAPPNAMES);
-	options.IconSpacingHorizontal = ReadIniInt(L"appereance", L"IconSpacingHorizontal", DEFAULT_HORZ_SPACING);
-	options.IconSpacingVertical =   ReadIniInt(L"appereance", L"IconSpacingVertical", DEFAULT_VERT_SPACING);
-
-	//load categories
-	wstring categories(ReadIniString(L"categories", L"Categories"));
-	vector<wstring> tokens;
-	wistringstream stream(categories);
-	wstring temp;
-	while(getline(stream, temp, L';')){
-		tokens.push_back(temp);
-	}
-
-	for(size_t i = 0; i < tokens.size(); i++){
-		if(!(tokens[i].empty() || tokens[i] == L"general" || tokens[i] == L"appereance" || tokens[i] == L"categories")){
-			vCategories.push_back(make_shared<CCategory>(this, i, tokens[i]));
-			vCategories.at(i)->imSmall.Create(SMALL_ICON_SIZE, SMALL_ICON_SIZE, ILC_COLOR32, 1, 0);
-			vCategories.at(i)->imLarge.Create(options.IconSize, options.IconSize, ILC_COLOR32, 1, 0);
-		}
-	}
-
-	//create main window
-	if(!CMainWnd.CreateEx(
-		/*WS_EX_CONTROLPARENT | */WS_EX_ACCEPTFILES,
-		GetString(IDC_PROGRAMLAUNCHER).c_str(),
-		GetString(IDS_APP_TITLE).c_str(),
-		WS_OVERLAPPEDWINDOW,
-		CW_USEDEFAULT,
-		CW_USEDEFAULT,
-		options.WindowWidth,
-		options.WindowHeight,
-		nullptr,
-		nullptr
-	)){
-		MessageBoxW(NULL, GetString(IDS_WND_CREATION_FAILED).c_str(), GetString(IDS_ERROR).c_str(), MB_ICONEXCLAMATION | MB_OK);
-		return 0;
-	}
-
-	if(CreateTabControl()){
-		CreateListView();
-	}
-
-	//show window
-	CMainWnd.ShowWindow(SW_SHOW);
-	CMainWnd.UpdateWindow();
-
-	//load elements
-	for(auto cat : vCategories){
-		LPCWSTR cName = cat->wsCategoryName.c_str();
-		int count = GetElementCount(cName);
-		for(int j = 0; j < count; j++){
-			cat->vItems.push_back(make_shared<CLauncherItem>(
-				cat.get(),
-				j,
-				ReadIniString(cName, wstring(to_wstring(j) + L".Name").c_str()),
-				ReadIniString(cName, wstring(to_wstring(j) + L".Path").c_str()),
-				ReadIniString(cName, wstring(to_wstring(j) + L".PathIcon").c_str()),
-				ReadIniInt(cName, wstring(to_wstring(j) + L".IconIndex").c_str()),
-				ReadIniString(cName, wstring(to_wstring(j) + L".Path64").c_str()),
-				ReadIniInt(cName, wstring(to_wstring(j) + L".Admin").c_str()),
-				ReadIniInt(cName, wstring(to_wstring(j) + L".AbsolutePaths").c_str())
-			));
-			cat->imLarge.Add(cat->vItems[j]->loadIcon(options.IconSize));
-			cat->imSmall.Add(cat->vItems[j]->loadIcon(SMALL_ICON_SIZE));
-		}
-	}
-	UpdateListView();
-	return 1;
-}
-
 
 
 
@@ -331,4 +243,4 @@ INT CreateIniFile(){
 	}
 	return 1;
 }
-
+*/

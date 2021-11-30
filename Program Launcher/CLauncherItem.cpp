@@ -1,9 +1,9 @@
 
-
+#include "pch.h"
 #include "Program Launcher.h"
 
 
-CLauncherItem::CLauncherItem(CCategory* ptrParent, int parentIndex, wstring wsName, wstring wsPath, wstring wsPathIcon, int iIconIndex, wstring wsPath64, bool bAdmin, bool bAbsolute)
+CLauncherItem::CLauncherItem(CCategory* ptrParent, UINT parentIndex, wstring wsName, wstring wsPath, wstring wsPathIcon, int iIconIndex, wstring wsPath64, bool bAdmin, bool bAbsolute)
 	:
 	ptrParent(ptrParent),
 	parentIndex(parentIndex),
@@ -14,34 +14,83 @@ CLauncherItem::CLauncherItem(CCategory* ptrParent, int parentIndex, wstring wsNa
 	wsPath64(wsPath64),
 	bAdmin(bAdmin),
 	bAbsolute(bAbsolute)
-{
+{}
 
-}
+CLauncherItem::CLauncherItem(CCategory* ptrParent, UINT parentIndex, const ElementProps& props)
+	:
+	ptrParent(ptrParent),
+	parentIndex(parentIndex),
+	wsName(props.wsName),
+	wsPath(props.wsPath),
+	wsPathIcon(props.wsPathIcon),
+	iIconIndex(props.iIconIndex),
+	wsPath64(props.wsPath64),
+	bAdmin(props.bAdmin),
+	bAbsolute(props.bAbsolute)
+{}
 
 
 CLauncherItem::~CLauncherItem(){
-	Launcher->CList.GetListCtrl().DeleteItem(parentIndex);
-	ptrParent->imLarge.Remove(parentIndex);
-	ptrParent->imSmall.Remove(parentIndex);
+	//Launcher->CList.DeleteItem(parentIndex);
+	try{
+		if(ptrParent && ptrParent->imLarge.m_hImageList && ptrParent->imSmall.m_hImageList){
+			ptrParent->imLarge.Remove(parentIndex);
+			ptrParent->imSmall.Remove(parentIndex);
+		}
+	}catch(...){}
 }
 
 
-int CLauncherItem::Edit(){
-	if(DialogBoxParamW(hInst, MAKEINTRESOURCEW(IDD_BTNSETTINGDLG), CMainWnd.GetSafeHwnd(), BtnEditDlgProc, (LPARAM)this)){
-		ptrParent->imLarge.Replace(parentIndex, this->loadIcon(Launcher->options.IconSize));
-		ptrParent->imSmall.Replace(parentIndex, this->loadIcon(SMALL_ICON_SIZE));
+bool CLauncherItem::Edit(){
+	if(DialogBoxParamW(hInst, MAKEINTRESOURCEW(IDD_BTNSETTINGDLG), CMainWnd->GetSafeHwnd(), BtnEditDlgProc, (LPARAM)this)){
+		HICON hSmall;
+		ptrParent->imLarge.Replace(parentIndex, this->LoadIcon(MAKELPARAM(Launcher->options.IconSize, SMALL_ICON_SIZE), &hSmall));
+		ptrParent->imSmall.Replace(parentIndex, hSmall);
 		this->UpdateInListView();
-		return 1;
+		return true;
 	}
-	return 0;
+	return false;
 }
 
-void CLauncherItem::Remove(){
-	CCategory* category = ptrParent;
-	int index = parentIndex;
-	category->vItems.erase(category->vItems.begin() + index);
-	category->ReindexItems(index);
-	Launcher->UpdateListView();
+void CLauncherItem::Remove(bool bAsk){
+	if(!bAsk || CMainWnd->MessageBoxW(std::format(GetString(IDS_REMOVE_BTN_PROMPT), wsName).c_str(), GetString(IDS_REMOVE_BUTTON).c_str(), MB_ICONEXCLAMATION | MB_YESNO) == IDYES){
+		CCategory* category = ptrParent;
+		int index = parentIndex;
+		category->vItems.erase(category->vItems.begin() + index);
+		category->ReindexItems(index);
+		CMainWnd->UpdateListView();
+	}
+}
+
+
+bool CLauncherItem::Move(UINT newPos, bool bRelative){
+	if(bRelative){
+		newPos += parentIndex;
+	}
+
+	shared_ptr<CLauncherItem> temp = ptrParent->vItems[parentIndex];
+	if(parentIndex == newPos){
+		return true;
+	} 
+	else if(newPos >= ptrParent->vItems.size()){
+		return false;
+	} 
+	else if(parentIndex < newPos){
+		for(UINT i = parentIndex; i < newPos; i++){
+			ptrParent->vItems[i] = ptrParent->vItems[i + 1];
+		}
+	} 
+	else{
+		for(UINT i = parentIndex; i > newPos; i--){
+			ptrParent->vItems[i] = ptrParent->vItems[i - 1];
+		}
+	}
+	ptrParent->vItems[newPos] = temp;
+	ptrParent->ReindexItems();
+
+	CMainWnd->UpdateListView(true);
+
+	return true;
 }
 
 
@@ -51,7 +100,7 @@ void CLauncherItem::Remove(){
 // @param nCategoryIndex - id of category
 // @return 1 if success, 0 if fail (Returns the handle to the new process)
 // 
-int CLauncherItem::Launch(){
+bool CLauncherItem::Launch(){
 
 	//expand enviromnent variables
 	wstring wsExpPath = ExpandEnvStrings(wsPath);
@@ -60,7 +109,7 @@ int CLauncherItem::Launch(){
 	SHELLEXECUTEINFO shExInfo;
 	shExInfo.cbSize = sizeof(shExInfo);
 	shExInfo.fMask = 0;//SEE_MASK_NOCLOSEPROCESS;
-	shExInfo.hwnd = CMainWnd.GetSafeHwnd();
+	shExInfo.hwnd = CMainWnd->GetSafeHwnd();
 	shExInfo.lpVerb = bAdmin ? L"runas" : nullptr;
 	if(Is64BitWindows() && wsPath64.size()){
 		shExInfo.lpFile = wsPath64.c_str();
@@ -77,21 +126,22 @@ int CLauncherItem::Launch(){
 	shExInfo.hInstApp = 0;
 
 	if(!ShellExecuteExW(&shExInfo)){
-		ErrorHandler();
-		return 0;
+		if(GetLastError() != ERROR_CANCELLED){
+			ErrorHandler();
+		}
+		return false;
 	}
 
 	if(Launcher->options.CloseAfterLaunch){
-		Launcher->Exit();
+		Launcher->ExitInstance();
 	}
-
-	return 1;
+	return true;
 }
 
 
 
 void CLauncherItem::InsertIntoListView(){
-	Launcher->CList.GetListCtrl().InsertItem(parentIndex, L"", parentIndex);
+	CMainWnd->CList.InsertItem(parentIndex, L"", parentIndex);
 	this->UpdateInListView();
 }
 
@@ -103,13 +153,7 @@ void CLauncherItem::UpdateInListView(){
 		wstring wsText;
 		switch(i){
 			case 0:// Name
-				switch(Launcher->options.ShowAppNames){
-					case 0:
-					case 1:
-						break;
-					default:
-						wsText = wsName;
-				}
+				wsText = wsName;
 				break;
 			case 1:// Path
 				wsText = wsPath;
@@ -132,7 +176,7 @@ void CLauncherItem::UpdateInListView(){
 				wsText = GetString(bAbsolute ? IDS_YES : IDS_NO);
 				break;
 		}
-		Launcher->CList.GetListCtrl().SetItemText(parentIndex, i, wsText.c_str());
+		CMainWnd->CList.SetItemText(parentIndex, i, wsText.c_str());
 	}
 }
 
@@ -143,7 +187,7 @@ INT_PTR CALLBACK BtnEditDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 	switch(message){
 		case WM_INITDIALOG:
 			//center the dialog
-			CenterDialog(CMainWnd.GetSafeHwnd(), hDlg);
+			CenterDialog(CMainWnd->GetSafeHwnd(), hDlg);
 
 			ptrItem = (CLauncherItem*)lParam;
 
@@ -396,7 +440,5 @@ INT_PTR CALLBACK BtnEditDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 		}
 	}
 	return FALSE;
-
-	UNREFERENCED_PARAMETER(lParam);
 }
 

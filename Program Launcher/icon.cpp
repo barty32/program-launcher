@@ -19,7 +19,7 @@
 // Copyright ©2021, barty12
 //
 
-#include "framework.h"
+#include "pch.h"
 #include "Program Launcher.h"
 
 
@@ -72,7 +72,7 @@ typedef PACK(struct _ICONHEADER{
 
 typedef struct _ENUMRESNAMES{
 	WORD wResId;
-	LPTSTR lpszResultIdName;
+	LPWSTR lpszResultIdName;
 }ENUMRESNAMES, * LPENUMRESNAMES;
 
 
@@ -83,20 +83,20 @@ typedef struct _ENUMRESNAMES{
 // 
 //  RETURN: HICON of the loaded icon, returns NULL if error
 //
-HICON CLauncherItem::loadIcon(int nIconSize){
+HICON CLauncherItem::LoadIcon(UINT nIconSize, HICON* phSmall){
 	
-	bool bUseIconCaching = ptrParent->ptrParent->options.UseIconCaching;
+	bool bUseIconCaching = Launcher->options.UseIconCaching;
 	
-	HICON hExtractedIcon = NULL;
+	HICON hExtractedIcon = null;
 	HRESULT result;
-
-	wstring wsIniPath(szIniPath);
-	wstring wsCachePath(RemoveFileSpecFromPath(wsIniPath));
-	wsCachePath.append(L"\\" ICON_CACHE_DIRECTORY L"\\" + to_wstring(ptrParent->parentIndex) + L',' + to_wstring(parentIndex) + L".ico");
+	
+	//wstring wsIniPath(/*szIniPath*/L"");
+	wstring wsCachePath = ICON_CACHE_DIRECTORY L"\\" + to_wstring(ptrParent->parentIndex) + L',' + to_wstring(parentIndex) + L".ico";// (RemoveFileSpecFromPath(wsIniPath));
+	//wsCachePath.append(L"\\" ICON_CACHE_DIRECTORY L"\\" + to_wstring(ptrParent->parentIndex) + L',' + to_wstring(parentIndex) + L".ico");
 
 	if(bUseIconCaching){
 		if(PathFileExistsW(wsPathIcon.c_str())){
-			result = SHDefExtractIconW(wsCachePath.c_str(), iIconIndex, 0, &hExtractedIcon, nullptr, (UINT)nIconSize);
+			result = SHDefExtractIconW(wsCachePath.c_str(), iIconIndex, 0, &hExtractedIcon, phSmall, nIconSize);
 			if(result == S_OK){
 				return hExtractedIcon;
 			}
@@ -106,16 +106,15 @@ HICON CLauncherItem::loadIcon(int nIconSize){
 		}
 	}
 
-	result = SHDefExtractIconW(wsPathIcon.c_str(), iIconIndex, 0, &hExtractedIcon, NULL, (UINT)nIconSize);
+	result = SHDefExtractIconW(wsPathIcon.c_str(), iIconIndex, 0, &hExtractedIcon, phSmall, nIconSize);
 	if(result == S_OK){
 		LPWSTR lpExtension = PathFindExtensionW(wsPathIcon.c_str());
-		if(lpExtension[0] != 0){
-			if((wcscmp(lpExtension, L".exe") || wcscmp(lpExtension, L".dll")) && bUseIconCaching){
-				fRebuildIconCache = TRUE;
-			}
+		if(bUseIconCaching && lpExtension[0] != 0 && (wcscmp(lpExtension, L".exe") || wcscmp(lpExtension, L".dll"))){
+			//TODO: fRebuildIconCache = TRUE;
 		}
 		return hExtractedIcon;
 	}
+	//*phSmall = LoadIconW(hInst, MAKEINTRESOURCEW(IDI_DEFAULT));
 	return LoadIconW(hInst, MAKEINTRESOURCEW(IDI_DEFAULT));
 }
 
@@ -214,10 +213,10 @@ INT SaveIconFromResource(LPCWSTR lpszResourcePath, WORD iIconIndex, LPCWSTR lpsz
 				iconInfo.dwImageOffset = dwCurrentDataOffset;
 				resultStream.write((char*)&iconInfo, sizeof(iconInfo));
 
-				int pos = resultStream.tellp();
+				std::streamoff pos = resultStream.tellp();
 				resultStream.seekp(dwCurrentDataOffset);
 				resultStream.write((char*)lpIcon, iconGroupInfo->idEntries[i].dwBytesInRes);
-				dwCurrentDataOffset = resultStream.tellp();
+				dwCurrentDataOffset = static_cast<DWORD>(resultStream.tellp());
 				resultStream.seekp(pos);
 			}
 			FreeLibrary(hExecutable);
@@ -233,46 +232,43 @@ INT SaveIconFromResource(LPCWSTR lpszResourcePath, WORD iIconIndex, LPCWSTR lpsz
 
 
 
-static void DeleteAllFiles(LPWSTR folderPath){
-	WCHAR fileFound[MAX_PATH];
-	WIN32_FIND_DATAW info;
-	HANDLE hp;
-	ZeroMemory(&info, sizeof(info));
-	_snwprintf_s(fileFound, MAX_PATH, _TRUNCATE, L"%s\\*.*", folderPath);
-	hp = FindFirstFileW(fileFound, &info);
-	do{
-		_snwprintf_s(fileFound, MAX_PATH, _TRUNCATE, L"%s\\%s", folderPath, info.cFileName);
-		DeleteFileW(fileFound);
-
-	} while(FindNextFileW(hp, &info));
-	FindClose(hp);
-}
+//static void DeleteAllFiles(LPCWSTR folderPath){
+//	WCHAR fileFound[MAX_PATH];
+//	WIN32_FIND_DATAW info;
+//	HANDLE hp;
+//	ZeroMemory(&info, sizeof(info));
+//	_snwprintf_s(fileFound, MAX_PATH, _TRUNCATE, L"%s\\*.*", folderPath);
+//	hp = FindFirstFileW(fileFound, &info);
+//	do{
+//		_snwprintf_s(fileFound, MAX_PATH, _TRUNCATE, L"%s\\%s", folderPath, info.cFileName);
+//		DeleteFileW(fileFound);
+//
+//	} while(FindNextFileW(hp, &info));
+//	FindClose(hp);
+//}
 
 //
 // @brief Completely rebuilds icon cache
 // @return 1 if success, 0 if fail
 //
-INT RebuildIconCache(){
+void CProgramLauncher::RebuildIconCache(){
 
-	//if(GetSettingInt(L"general", L"UseIconCaching", DEFAULT_USEICONCACHING)){
+	if(options.UseIconCaching){
 
-	//	//first empty icon cache folder
-	//	WCHAR szCacheFileName[MAX_PATH];
-	//	wcscpy_s(szCacheFileName, _countof(szCacheFileName), szIniPath);
-	//	PathRemoveFileSpecW(szCacheFileName);
-	//	PathAppendW(szCacheFileName, ICON_CACHE_DIRECTORY);
-	//	DeleteAllFiles(szCacheFileName);
+		//first empty icon cache folder
+		std::filesystem::remove_all(ICON_CACHE_DIRECTORY);
+		int i = 0;
+		for(auto &cat : vCategories){
+			int j = 0;
+			for(auto &item : cat->vItems){
+				SaveIconFromResource(item->wsPathIcon.c_str(), item->iIconIndex, wstring(ICON_CACHE_DIRECTORY L"\\" + to_wstring(cat->parentIndex) + L',' + to_wstring(item->parentIndex) + L".ico").c_str());
+				j++;
+			}
+			i++;
+		}
+	}
+	//TODO fRebuildIconCache = FALSE;
 
-	//	INT nCategoryCount = GetCategoryCount();
-	//	for(int i = 0; i < nCategoryCount; i++){
-	//		INT nCategorySectionCount = GetCategorySectionCount(i);
-	//		for(int j = 0; j < nCategorySectionCount; j++){
-	//			SaveIconFromResource(i, j);
-	//		}
-	//	}
-	//}
-	//fRebuildIconCache = FALSE;
-
-	return 1;
+	//return 1;
 }
 

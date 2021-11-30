@@ -10,383 +10,342 @@
 //
 //
 
-#define DEFINE_GLOBAL
+#include "pch.h"
+#define DECLARE_GLOBAL_VARIABLES
 #include "Program Launcher.h"
 
+// The one and only CProgramLauncher object
+CProgramLauncher theApp;
 
 
-//-----------------------------------------------------------------------------------------------------------------------------
-// 
-//                                                   WinMain
-// 
-//-----------------------------------------------------------------------------------------------------------------------------
-INT APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow){
 
-	UNREFERENCED_PARAMETER(hPrevInstance);
-	UNREFERENCED_PARAMETER(lpCmdLine);
+CProgramLauncher::CProgramLauncher() noexcept{
+	hInst = GetModuleHandleW(nullptr);
+	Launcher = this;
 
-	//hwndMain = nullptr;
-	hInst = hInstance;
-	Launcher = nullptr;
+	LPWSTR resultPath = null;
+
+	wstring pth = L"*:\\Users\\barty";
+
+	AddLetterToPath(pth);
+
+	NOP
+
+	// Locate .ini file
+
+	//First try with MAX_PATH characters
+	DWORD pathLen = MAX_PATH;
+	//auto path = make_unique<WCHAR[]>(pathLen);
+	LPWSTR path = new WCHAR[pathLen];
+	LPWSTR expPath = null;
+	::GetModuleFileNameW(null, path, pathLen);
+
+	if(GetLastError() == ERROR_INSUFFICIENT_BUFFER){
+		pathLen = 32768;
+		delete[] path;// .release();
+		path = new WCHAR[pathLen];//make_unique<WCHAR[]>(pathLen);
+		::GetModuleFileNameW(null, path, pathLen);
+	}
+
+	PathRemoveFileSpecW(path);
+	PathAppendW(path, TEXT(INI_FILE_NAME));
+
+//CHECK_EXE_FOLDER:
+	if(PathFileExistsW(path)){
+		if(IsFileWritable(path)){
+			//success
+			goto SUCCESS_EXE;
+		}
+	}
+
+//CHECK_APPDATA:
+
+	//auto expPath = make_unique<WCHAR[]>(pathLen);
+	expPath = new WCHAR[32768];
+	ExpandEnvironmentStringsW(L"%AppData%\\Program Launcher\\" TEXT(INI_FILE_NAME), expPath, 32768);
+	//PathAppendW(expPath, TEXT(INI_FILE_NAME));
+
+	if(PathFileExistsW(expPath)){
+		if(IsFileWritable(expPath)){
+			//success
+			goto SUCCESS_APPDATA;
+		}
+	}
+	//create file in exe folder
+
+	FILE* file_handle;
+	if(!(_wfopen_s(&file_handle, path, L"w,ccs=UTF-8") || !file_handle)){
+		//success
+		fwrite(L";hello world", sizeof(WCHAR), 12, file_handle);
+		fclose(file_handle);
+		delete[] expPath;
+		goto SUCCESS_EXE;
+	}
+	
+	if(!(_wfopen_s(&file_handle, expPath, L"w,ccs=UTF-8") || !file_handle)){
+		//success
+		fwrite(L";hello world in appdata", sizeof(WCHAR), 23, file_handle);
+		fclose(file_handle);
+		goto SUCCESS_APPDATA;
+	}
+
+	AfxMessageBox(L"Ini file could not be opened nor created. Any change you will make will not be saved. Program Launcher can crash at any time.");
+	ini = null;
+	return;
+
+SUCCESS_EXE:
+	
+	ini = new IniParser(path);
+	PathRemoveFileSpecW(path);
+	SetCurrentDirectoryW(path);
+	delete[] path;
+	return;
+
+SUCCESS_APPDATA:
+
+	ini = new IniParser(expPath);
+	PathRemoveFileSpecW(expPath);
+	SetCurrentDirectoryW(expPath);
+	delete[] path;
+	delete[] expPath;
+	return;
+	
+
+	//wstring tmp = L"	1 , 42	,1582y007 ";
+	//vector<int> test = StrSplitToInt(tmp, L',');
+	//NOP
+
+
+	//::GetModuleFileNameW(null, szIniPath, _countof(szIniPath));
+	//PathRemoveFileSpecW(szIniPath);
+	//PathAppendW(szIniPath, TEXT(INI_FILE_NAME));
+	//if(!PathFileExistsW(szIniPath)){
+	//	WCHAR szNewPath[MAX_PATH];
+	//	ExpandEnvironmentStringsW(L"%AppData%\\Program Launcher", szNewPath, _countof(szNewPath));
+	//	PathAppendW(szNewPath, TEXT(INI_FILE_NAME));
+	//	if(PathFileExistsW(szNewPath)){
+	//		wcscpy_s(szIniPath, _countof(szIniPath), szNewPath);
+	//	}
+	//}
+	//ini = new IniParser(szIniPath);
+}
+
+
+
+BOOL CProgramLauncher::InitInstance(){
 
 	// Initialize common controls.
 	INITCOMMONCONTROLSEX icex;
-	icex.dwSize = sizeof(INITCOMMONCONTROLSEX);
+	icex.dwSize = sizeof(icex);
 	icex.dwICC = ICC_TAB_CLASSES | ICC_BAR_CLASSES | ICC_LISTVIEW_CLASSES | ICC_STANDARD_CLASSES | ICC_UPDOWN_CLASS | ICC_WIN95_CLASSES;
 	InitCommonControlsEx(&icex);
 
-	// Initialize MFC
-	if(!AfxWinInit(hInstance, hPrevInstance, lpCmdLine, nCmdShow)){
-		MessageBoxW(nullptr, L"Fatal Error: MFC initialization failed\n", L"Program Launcher - Error", MB_OK | MB_ICONERROR);
+	CWinApp::InitInstance();
+
+	ini->Init();
+
+	//load options
+	options.ShowAppNames = ini->ReadInt(L"general", L"ShowAppNames", DEFAULT_SHOWAPPNAMES);
+	options.CloseAfterLaunch = ini->ReadInt(L"general", L"CloseAfterLaunch", DEFAULT_CLOSEAFTERLAUNCH);
+	options.WindowWidth = ini->ReadInt(L"general", L"WindowWidth", DEFAULT_WINDOW_WIDTH);
+	options.WindowHeight = ini->ReadInt(L"general", L"WindowHeight", DEFAULT_WINDOW_HEIGHT);
+	options.UseIconCaching = ini->ReadInt(L"general", L"UseIconCaching", DEFAULT_USEICONCACHING);
+
+	//appereance
+	options.IconSize = ini->ReadInt(L"appereance", L"IconSize", DEFAULT_SHOWAPPNAMES);
+	options.IconSpacingHorizontal = ini->ReadInt(L"appereance", L"IconSpacingHorizontal", DEFAULT_HORZ_SPACING);
+	options.IconSpacingVertical = ini->ReadInt(L"appereance", L"IconSpacingVertical", DEFAULT_VERT_SPACING);
+
+	//load categories
+	wstring categories(ini->ReadString(L"categories", L"Categories"));
+	vector<wstring> tokens;
+	wistringstream stream(categories);
+	wstring temp;
+	while(getline(stream, temp, L';')){
+		tokens.push_back(temp);
 	}
 
-	// Register Window Class
-	WNDCLASSEX wcex;
-	wcex.cbSize = sizeof(WNDCLASSEX);
-	wcex.style = CS_HREDRAW | CS_VREDRAW;
-	wcex.lpfnWndProc = WndProc;
-	wcex.cbClsExtra = 0;
-	wcex.cbWndExtra = 0;
-	wcex.hInstance = hInstance;
-	wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_PROGRAMLAUNCHER));
-	wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-	wcex.lpszMenuName = MAKEINTRESOURCE(IDC_PROGRAMLAUNCHER);
-	wstring ld(GetString(IDC_PROGRAMLAUNCHER));
-	wcex.lpszClassName = ld.c_str();
-	wcex.hIconSm = wcex.hIcon;
-
-	if(!RegisterClassExW(&wcex)){
-		MessageBoxW(NULL, GetString(IDS_WND_REGISTRATION_FAILED).c_str(), GetString(IDS_ERROR).c_str(), MB_ICONEXCLAMATION | MB_OK);
-		return 0;
-	}
-
-
-	// Perform application initialization
-	//save global .ini file path
-	//TCHAR szExePath[MAX_PATH];
-	//GetModuleFileName(NULL, szExePath, MAX_PATH);
-	//PathRemoveFileSpec(szExePath);
-	//_sntprintf_s(szIniPath, MAX_PATH, MAX_PATH, TEXT("%s\\%s"), szExePath, );
-
-	GetModuleFileNameW(NULL, szIniPath, _countof(szIniPath));
-	PathRemoveFileSpecW(szIniPath);
-	PathAppendW(szIniPath, TEXT(INI_FILE_NAME));
-	if(!PathFileExistsW(szIniPath)){
-		WCHAR szNewPath[MAX_PATH];
-		ExpandEnvironmentStringsW(L"%AppData%\\Program Launcher", szNewPath, _countof(szNewPath));
-		PathAppendW(szNewPath, TEXT(INI_FILE_NAME));
-		if(PathFileExistsW(szNewPath)){
-			wcscpy_s(szIniPath, _countof(szIniPath), szNewPath);
+	for(size_t i = 0; i < tokens.size(); i++){
+		if(!(tokens[i].empty() || tokens[i] == L"general" || tokens[i] == L"appereance" || tokens[i] == L"categories")){
+			vCategories.push_back(make_shared<CCategory>(this, i, tokens[i]));
 		}
 	}
 
-	CProgramLauncher main;
-	Launcher = &main;
-	Launcher->Init();
+	// To create the main window, this code creates a new frame window
+	// object and then sets it as the application's main window object
+	CLauncherWnd* pFrame = new CLauncherWnd;
+	if(!pFrame) return false;
+	m_pMainWnd = pFrame;
+	CMainWnd = pFrame;
+	// create and load the frame with its resources
+	pFrame->LoadFrame(IDC_PROGRAMLAUNCHER, WS_OVERLAPPEDWINDOW, nullptr, nullptr);
 
-	HACCEL hAccelTable = LoadAcceleratorsW(hInstance, MAKEINTRESOURCEW(IDC_PROGRAMLAUNCHER));
-	// Main message loop:
-	MSG msg;
-	while(GetMessageW(&msg, NULL, 0, 0)){
-		if(!TranslateAcceleratorW(CMainWnd.GetSafeHwnd(), hAccelTable, &msg)){
-			TranslateMessage(&msg);
-			DispatchMessageW(&msg);
-		}
+	pFrame->m_statusBar.Create(pFrame);
+
+	if(pFrame->CreateTabControl()){
+		pFrame->CreateListView();
 	}
-	return (int)msg.wParam;
+
+	// The one and only window has been initialized, so show and update it
+	pFrame->ShowWindow(SW_SHOW);
+	pFrame->UpdateWindow();
+
+	//load elements
+	for(auto &cat : vCategories){
+		//cat->LoadElements();
+		::CreateThread(nullptr, 0, LoadElements, &cat, 0, 0);
+	}
+	//this->UpdateListView();
+	return 1;
+}
+
+int CProgramLauncher::ExitInstance(){
+
+	//save options
+	ini->WriteInt(L"general", L"ShowAppNames", options.ShowAppNames);
+	ini->WriteInt(L"general", L"CloseAfterLaunch", options.CloseAfterLaunch);
+	ini->WriteInt(L"general", L"WindowWidth", options.WindowWidth);
+	ini->WriteInt(L"general", L"WindowHeight", options.WindowHeight);
+	ini->WriteInt(L"general", L"UseIconCaching", options.UseIconCaching);
+
+	//appereance
+	//ini->WriteInt(L"appereance", L"IconSize", options.IconSize);
+	//ini->WriteInt(L"appereance", L"IconSpacingHorizontal", options.IconSpacingHorizontal);
+	//ini->WriteInt(L"appereance", L"IconSpacingVertical", options.IconSpacingVertical);
+
+	//save categories
+	wstring str;
+
+	for(auto &cat : vCategories){
+		str.append(cat->wsCategoryName);
+		str.append(L";");
+		//for(size_t i = 0; i < cat->vItems.size(); i++){
+		//	auto &item = cat->vItems[i];
+		//	ElementProps props;
+		//	props.wsName = item->wsName;
+		//	props.wsPath = item->wsPath;
+		//	props.wsPath64 = item->wsPath64;
+		//	props.wsPathIcon = item->wsPathIcon;
+		//	props.iIconIndex = item->iIconIndex;
+		//	props.bAdmin = item->bAdmin;
+		//	props.bAbsolute = item->bAbsolute;
+		//	SaveElementProperties(cat->wsCategoryName.c_str(), i, props);
+		//}
+	}
+
+	if(!str.empty()){
+		str.pop_back();
+		ini->WriteString(L"categories", L"Categories", str.c_str());
+	}
+
+	//TODO: if(fRebuildIconCache){
+		//::CreateThread(null, 0, RebuildIconCache, null, 0, 0);
+		//RebuildIconCache();
+	//}
+
+	delete this->ini;
+
+	return CWinApp::ExitInstance();
 }
 
 
-//
-//  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
-//
-//  PURPOSE: Processes messages for the main window.
-//
-//  WM_COMMAND  - process the application menu
-//  WM_PAINT    - Paint the main window
-//  WM_DESTROY  - post a quit message and return
-//
-LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
-	static INT nClickedTab = -1;
-	switch(message){
-		case WM_COMMAND:
-		{
-			int wmId = LOWORD(wParam);
-			// Parse the menu selections:
-			switch(wmId){
-				case IDM_ABOUT:
-					DialogBoxParamW(hInst, MAKEINTRESOURCEW(IDD_ABOUTBOX), hWnd, About, 0);
-					break;
-				case IDM_FILE_PREF:
-					DialogBoxParamW(hInst, MAKEINTRESOURCE(IDD_PREFDLG), hWnd, PrefDlgProc, 0);
-					break;
-				case IDM_CATEGORY_ADDCATEGORY:
-					Launcher->NewCategory();
-					break;
-				case IDM_CATEGORY_RENAMECURRENTCATEGORY:
-					Launcher->RenameCategory(Launcher->GetCurrentCategoryIndex());
-					break;
-				case IDM_CATEGORY_REMOVECURRENTCATEGORY:
-					Launcher->RemoveCategory(Launcher->GetCurrentCategoryIndex());
-					break;
-				case IDM_POPUPCATEGORY_REMOVECATEGORY:
-					Launcher->RemoveCategory(nClickedTab);
-					break;
-				case IDM_POPUPCATEGORY_RENAME:
-					Launcher->RenameCategory(nClickedTab);
-					break;
-				case IDM_CATEGORY_MOVELEFT:
-					//MoveCategory(TabCtrl_GetCurSel(hwndTab), TRUE);
-					break;
-				case IDM_CATEGORY_MOVERIGHT:
-					//MoveCategory(TabCtrl_GetCurSel(hwndTab), FALSE);
-					break;
-				case IDM_POPUPCATEGORY_MOVELEFT:
-					//MoveCategory(nClickedTab, TRUE);
-					break;
-				case IDM_POPUPCATEGORY_MOVERIGHT:
-					//MoveCategory(nClickedTab, FALSE);
-					break;
-				case IDM_BUTTON_ADDNEWBUTTON:
-					Launcher->NewItem();
-					break;
-				case IDM_VIEW_LARGEICONS:
-					Launcher->SwitchListView(LVS_ICON);
-					break;
-				case IDM_VIEW_SMALLICONS:
-					Launcher->SwitchListView(LVS_SMALLICON);
-					break;
-				case IDM_VIEW_LIST:
-					Launcher->SwitchListView(LVS_LIST);
-					break;
-				case IDM_VIEW_DETAILS:
-					Launcher->SwitchListView(LVS_REPORT);
-					break;
-				case IDM_EXIT:
-					Launcher->Exit();
-					break;
-				case IDM_BUTTON_LAUNCH:
-					Launcher->GetCurrentCategory()->GetSelectedItem()->Launch();
-					break;
-				case IDM_BUTTON_EDIT:
-					Launcher->GetCurrentCategory()->GetSelectedItem()->Edit();
-					break;
-				case IDM_BUTTON_MOVELEFT:
-					break;
-				case IDM_BUTTON_MOVERIGHT:
-					break;
-				case IDM_BUTTON_REMOVE:
-					Launcher->GetCurrentCategory()->GetSelectedItem()->Remove();
-				break;
-				default:
-					return DefWindowProc(hWnd, message, wParam, lParam);
-			}
-		}
-		break;
-		case WM_CONTEXTMENU:
-			if((HWND)wParam == Launcher->hwndMainListView){
-				return Launcher->DoListViewContextMenu(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
-			}
+BEGIN_MESSAGE_MAP(CProgramLauncher, CWinApp)
+	ON_COMMAND(IDM_ABOUT, &CProgramLauncher::OnAppAbout)
+END_MESSAGE_MAP()
 
-			if((HWND)wParam == Launcher->CTab.GetSafeHwnd() && GET_X_LPARAM(lParam) == -1 && GET_Y_LPARAM(lParam)){
-				nClickedTab = Launcher->CTab.GetCurFocus();
-				return Launcher->DoTabControlContextMenu(nClickedTab, -1, -1);
-			}
 
-			RECT tabItemRect;
-			POINT clickedCoords;
-			clickedCoords.x = GET_X_LPARAM(lParam);
-			clickedCoords.y = GET_Y_LPARAM(lParam);
-			ScreenToClient(hWnd, &clickedCoords);
 
-			for(size_t i = 0; i < Launcher->vCategories.size(); i++){
-				Launcher->CTab.GetItemRect(i, &tabItemRect);
-				if(PtInRect(&tabItemRect, clickedCoords)){
-					nClickedTab = i;
-					break;
-				}
-				else{
-					nClickedTab = -1;
-				}
-			}
-				
-			if(nClickedTab >= 0){
-				return Launcher->DoTabControlContextMenu(nClickedTab, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
-			}
-			return DefWindowProcW(hWnd, message, wParam, lParam);
-		break;
-		case WM_NOTIFY:
-		{
-			if(Launcher == nullptr) return 0;
-			if(((LPNMTVKEYDOWN)lParam)->hdr.hwndFrom == Launcher->CTab.GetSafeHwnd()){
-				if(((LPNMHDR)lParam)->code == TCN_SELCHANGE){
-					Launcher->UpdateListView();
-				}
-				else if(((LPNMTVKEYDOWN)lParam)->hdr.code == TCN_KEYDOWN){
-					if(((LPNMTVKEYDOWN)lParam)->wVKey == VK_TAB){
-						SetFocus(Launcher->hwndMainListView);
-					}
-				}
-			}
-			else if(((LPNMITEMACTIVATE)lParam)->hdr.hwndFrom == Launcher->hwndMainListView){
-				if(((LPNMITEMACTIVATE)lParam)->hdr.code == NM_DBLCLK){
-					try{
-						Launcher->GetCurrentCategory()->GetItem(((LPNMITEMACTIVATE)lParam)->iItem)->Launch();
-					}
-					catch(...){
-					}
-					return 0;
-				}
-				else if(((LPNMHDR)lParam)->code == NM_RETURN){
-					try{
-						Launcher->GetCurrentCategory()->GetSelectedItem()->Launch();
-					}
-					catch(...){
-					}
-					return 0;
-				}
-				else if(((LPNMLVKEYDOWN)lParam)->hdr.code == LVN_KEYDOWN){
-					//if(((LPNMLVKEYDOWN)lParam)->wVKey == VK_RETURN){
-					//	INT nBtnIndex = SendMessage(hwndListView, LVM_GETNEXTITEM, -1, LVNI_FOCUSED);
-					//	if(nBtnIndex != -1){
-					//		LaunchProgram(nBtnIndex, TabCtrl_GetCurSel(hwndTab));
-					//	}
-					//}
-					if(((LPNMLVKEYDOWN)lParam)->wVKey == VK_DELETE){
-						if(MessageBoxW(hWnd, GetString(IDS_REMOVE_BTN_PROMPT).c_str(), GetString(IDS_REMOVE_BUTTON).c_str(), MB_ICONEXCLAMATION | MB_YESNO) == IDYES){
-							INT nBtnIndex = SendMessageW(Launcher->hwndMainListView, LVM_GETNEXTITEM, -1, LVNI_FOCUSED);
-							if(nBtnIndex != -1){
-								try{
-									Launcher->GetCurrentCategory()->GetItem(nBtnIndex)->Remove();
-								}
-								catch(...){
-								}
-							}
-						}
-					}
-					else if(((LPNMLVKEYDOWN)lParam)->wVKey == VK_TAB){
-						Launcher->CTab.SetFocus();
-					}
-					return DefWindowProcW(hWnd, message, wParam, lParam);
+// CAboutDlg dialog used for App About
+
+class CAboutDlg : public CDialogEx{
+	public:
+	CAboutDlg() noexcept;
+
+// Dialog Data
+#ifdef AFX_DESIGN_TIME
+	enum{ IDD = IDD_ABOUTBOX };
+#endif
+
+	protected:
+	//virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+
+// Implementation
+	public:
+	virtual BOOL OnInitDialog();
+};
+
+CAboutDlg::CAboutDlg() noexcept : CDialogEx(IDD_ABOUTBOX){}
+
+//void CAboutDlg::DoDataExchange(CDataExchange* pDX){
+//	CDialogEx::DoDataExchange(pDX);
+//}
+
+BOOL CAboutDlg::OnInitDialog(){
+	CDialogEx::OnInitDialog();
+
+	//center the dialog
+	CenterWindow();
+
+	WCHAR szExePath[MAX_PATH];
+	DWORD  verHandle = 0;
+	UINT   size = 0;
+	LPBYTE lpBuffer = null;
+
+	GetModuleFileNameW(hInst, szExePath, _countof(szExePath));
+
+	DWORD  verSize = GetFileVersionInfoSizeW(szExePath, &verHandle);
+	if(verSize == 0) return true;
+
+	LPWSTR verData = new WCHAR[verSize];
+	if(verData == null) return true;
+
+	if(GetFileVersionInfoW(szExePath, 0, verSize, verData)){
+		if(VerQueryValueW(verData, L"\\", (VOID FAR * FAR*) & lpBuffer, &size)){
+			if(size){
+				VS_FIXEDFILEINFO* verInfo = (VS_FIXEDFILEINFO*)lpBuffer;
+				if(verInfo->dwSignature == 0xfeef04bd){
+					_snwprintf_s(verData, verSize / sizeof(WCHAR), verSize, L"v%d.%d.%d",
+						(verInfo->dwFileVersionMS >> 16) & 0xffff,
+						(verInfo->dwFileVersionMS >> 0) & 0xffff,
+						(verInfo->dwFileVersionLS >> 16) & 0xffff//,
+						//(verInfo->dwFileVersionLS >> 0) & 0xffff
+					);
 				}
 			}
 		}
-		break;
-		case WM_SETFOCUS:
-			SetFocus(Launcher->hwndMainListView);
-			return 0;
-		case WM_CREATE:
-		{
-			//SetPropW(hWnd, L"Launcher", (HANDLE)((LPCREATESTRUCT)lParam)->lpCreateParams);
-
-			//TCHAR string[256];
-			//int result = ExpandEnvironmentStrings("%blabla%", string, 256);
-			//int error = GetLastError();
-			//INT nSize = GetIniString("categories", "Categories", "default",	string, 10, szIniPath);
-
-			//MessageBoxW(hWnd, LoadLocalString(IDS_APP_TITLE), L"Title", MB_ICONINFORMATION | MB_OK);
-
-		}
-		break;
-		case WM_SIZE:
-			Launcher->ResizeTabControl();
-			Launcher->ResizeListView();
-		break;
-		case WM_PAINT:
-		{/*
-			PAINTSTRUCT ps;
-			HDC hdc = BeginPaint(hWnd, &ps);
-			// TODO: Add any drawing code that uses hdc here...
-			if(hwndTab == NULL){
-				RECT clientRect;
-				GetClientRect(hwndMain, &clientRect);
-				TextOut(hdc, clientRect.right / 2 - 200, clientRect.bottom / 2 - 5, LoadLocalString(IDS_FIRST_STARTUP_TIP), 55);
-			}
-
-			EndPaint(hWnd, &ps);
-			return DefWindowProc(hWnd, message, wParam, lParam);
-		*/}
-		break;
-		case WM_INITMENUPOPUP:
-		{
-			//CProgramLauncher* Launcher = (CProgramLauncher*)GetPropW(hWnd, L"Launcher");
-			UpdateMenu(Launcher->hwndMainListView, GetMenu(hWnd));
-		}
-		break;
-		case WM_DESTROY:
-		{
-			//if(fRebuildIconCache){
-				//RebuildIconCache();
-			//}
-
-			//save current window dimensions to ini file
-			//RECT windowSize;
-			//GetWindowRect(hWnd, &windowSize);
-			//SetSettingInt(TEXT("general"), TEXT("WindowWidth"), windowSize.right - windowSize.left);
-			//SetSettingInt(TEXT("general"), TEXT("WindowHeight"), windowSize.bottom - windowSize.top);
-
-			PostQuitMessage(0);
-		}
-		break;
-		default:
-			return DefWindowProcW(hWnd, message, wParam, lParam);
 	}
-	return DefWindowProcW(hWnd, message, wParam, lParam);
+
+	GetDlgItem(IDC_ABOUT_VERSION)->SetWindowTextW(verData);
+	delete[] verData;
+	return true;
 }
 
-// Message handler for about box.
-INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam){
-	UNREFERENCED_PARAMETER(lParam);
-	switch(message){
-		case WM_INITDIALOG:
-		{
-			//center the dialog
-			CenterDialog(CMainWnd.GetSafeHwnd(), hDlg);
 
-			WCHAR szExePath[MAX_PATH];
-			DWORD  verHandle = 0;
-			UINT   size = 0;
-			LPBYTE lpBuffer = NULL;
 
-			GetModuleFileNameW(GetModuleHandleW(NULL), szExePath, _countof(szExePath));
 
-			DWORD  verSize = GetFileVersionInfoSizeW(szExePath, &verHandle);
-			if(verSize == 0) return (INT_PTR)TRUE;
-
-			LPWSTR verData = (LPWSTR)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, verSize);
-			if(verData == NULL) return (INT_PTR)TRUE;
-
-			if(GetFileVersionInfoW(szExePath, 0, verSize, verData)){
-				if(VerQueryValueW(verData, L"\\", (VOID FAR * FAR*) & lpBuffer, &size)){
-					if(size){
-						VS_FIXEDFILEINFO* verInfo = (VS_FIXEDFILEINFO*)lpBuffer;
-						if(verInfo->dwSignature == 0xfeef04bd){
-							_snwprintf_s(verData, verSize / sizeof(WCHAR), verSize, L"v%d.%d.%d", 
-								(verInfo->dwFileVersionMS >> 16) & 0xffff,
-								(verInfo->dwFileVersionMS >> 0) & 0xffff,
-								(verInfo->dwFileVersionLS >> 16) & 0xffff//,
-								//(verInfo->dwFileVersionLS >> 0) & 0xffff
-							);
-						}
-					}
-				}
-			}
-
-			SetWindowTextW(GetDlgItem(hDlg, IDC_ABOUT_VERSION), verData);
-			HeapFree(GetProcessHeap(), 0, verData);
-			
-			return (INT_PTR)TRUE;
-		}
-		break;
-		case WM_COMMAND:
-			if(LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL){
-				EndDialog(hDlg, LOWORD(wParam));
-				return (INT_PTR)TRUE;
-			}
-			break;
-	}
-	return (INT_PTR)FALSE;
+// App command to run the dialog
+void CProgramLauncher::OnAppAbout(){
+	CAboutDlg aboutDlg;
+	aboutDlg.DoModal();
 }
 
+
+
+
+
+
+//void TabControl::OnPaint(){
+//	CTabCtrl::OnPaint();
+//
+//	CPaintDC dc(this); // device context for painting
+//					   // TODO: Add your message handler code here
+//					   // Do not call CTabCtrl::OnPaint() for painting messages
+//	if(this->GetItemCount() == 0){
+//		CMainWnd->CList.ShowWindow(SW_HIDE);
+//		RECT clientRect;
+//		GetClientRect(&clientRect);
+//		//dc.TextOutW(clientRect.right / 2 - 200, clientRect.bottom / 2 - 5, LoadLocalString(IDS_FIRST_STARTUP_TIP), 55);
+//		dc.DrawTextW(CString(GetString(IDS_FIRST_STARTUP_TIP).c_str()), &clientRect, DT_CENTER | DT_VCENTER);
+//	}
+//}
 
