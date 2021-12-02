@@ -29,7 +29,7 @@
 #include "Program Launcher.h"
 
 
-CCategory::CCategory(CProgramLauncher* ptrParent, UINT parentIndex, wstring wsName)
+CCategory::CCategory(CProgramLauncher* ptrParent, const UINT parentIndex, const wstring& wsName)
 	:
 	ptrParent(ptrParent),
 	parentIndex(parentIndex),
@@ -41,11 +41,10 @@ CCategory::CCategory(CProgramLauncher* ptrParent, UINT parentIndex, wstring wsNa
 
 
 int CCategory::LoadElements(){
-	UINT count = Launcher->ini->GetKeyCount(wsCategoryName);
 	vItems.clear();
-	for(UINT j = 0; j < count; j++){
-		ElementProps props;
-		GetElementProperties(wsCategoryName, j, props);
+	ElementProps props;
+	UINT j = 0;
+	for(; GetElementProperties(wsCategoryName, j, props); ++j){
 		vItems.push_back(make_shared<CLauncherItem>(this, j, props));
 		imLarge.Add(vItems[j]->LoadIcon(Launcher->options.IconSize));
 		imSmall.Add(vItems[j]->LoadIcon(SMALL_ICON_SIZE));
@@ -55,11 +54,11 @@ int CCategory::LoadElements(){
 			//CMainWnd->m_statusBar.Invalidate();
 		}
 	}
-	return count;
+	return j;
 }
 
 bool CCategory::Rename(){
-	CUserInputDlg dlg(&wsCategoryName);
+	CUserInputDlg dlg(wsCategoryName);
 	if(dlg.DoModal() == 1){
 		TCITEMW tie = {0};
 		tie.mask = TCIF_TEXT;
@@ -147,10 +146,10 @@ CLauncherItem* CCategory::GetSelectedItem(){
 
 // CUserInputDlg dialog
 
-IMPLEMENT_DYNAMIC(CUserInputDlg, CDialogEx)
+IMPLEMENT_DYNAMIC(CUserInputDlg, CDialog)
 
-CUserInputDlg::CUserInputDlg(wstring* pName, CWnd* pParent /*=nullptr*/)
-	: CDialogEx(IDD_USERINPUTDLG, pParent),
+CUserInputDlg::CUserInputDlg(wstring& pName, CWnd* pParent /*=nullptr*/)
+	: CDialog(IDD_USERINPUTDLG, pParent),
 	m_wsName(pName){
 
 }
@@ -158,11 +157,11 @@ CUserInputDlg::CUserInputDlg(wstring* pName, CWnd* pParent /*=nullptr*/)
 CUserInputDlg::~CUserInputDlg(){}
 
 void CUserInputDlg::DoDataExchange(CDataExchange* pDX){
-	CDialogEx::DoDataExchange(pDX);
+	CDialog::DoDataExchange(pDX);
 }
 
 
-BEGIN_MESSAGE_MAP(CUserInputDlg, CDialogEx)
+BEGIN_MESSAGE_MAP(CUserInputDlg, CDialog)
 	ON_COMMAND(IDC_USERINPUTDLGEDIT, &CUserInputDlg::OnUserInput)
 END_MESSAGE_MAP()
 
@@ -171,7 +170,7 @@ END_MESSAGE_MAP()
 
 
 BOOL CUserInputDlg::OnInitDialog(){
-	CDialogEx::OnInitDialog();
+	CDialog::OnInitDialog();
 
 	//center the dialog
 	this->CenterWindow();
@@ -179,9 +178,9 @@ BOOL CUserInputDlg::OnInitDialog(){
 	//set maximum number of characters to CATEGORY_NAME_LEN
 	this->SendDlgItemMessageW(IDC_USERINPUTDLGEDIT, EM_SETLIMITTEXT, CATEGORY_NAME_LEN);
 
-	if(m_wsName->size()){
+	if(!m_wsName.empty()){
 		this->SetWindowTextW(GetString(IDS_RENAME_CATEGORY).c_str());
-		this->GetDlgItem(IDC_USERINPUTDLGEDIT)->SetWindowTextW(m_wsName->c_str());
+		this->GetDlgItem(IDC_USERINPUTDLGEDIT)->SetWindowTextW(m_wsName.c_str());
 	}
 
 	return true;
@@ -197,7 +196,7 @@ void CUserInputDlg::OnUserInput(){
 
 
 void CUserInputDlg::OnOK(){
-	//CDialogEx::OnOK();
+	//CDialog::OnOK();
 	try{
 		CString name;
 		this->GetDlgItem(IDC_USERINPUTDLGEDIT)->GetWindowTextW(name);
@@ -211,7 +210,7 @@ void CUserInputDlg::OnOK(){
 		if(name.Find(CATEGORY_NAME_DELIM) != -1 || name == L"general" || name == L"appereance" || name == L"categories"){
 			throw IDS_NAME_INVALID_CHARACTERS;
 		}
-		*m_wsName = name;
+		m_wsName = name;
 
 		this->EndDialog(true);
 		return;

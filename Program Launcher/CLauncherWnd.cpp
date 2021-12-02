@@ -41,6 +41,9 @@ BEGIN_MESSAGE_MAP(CLauncherWnd, CFrameWnd)
 	ON_COMMAND(IDM_CATEGORY_MOVERIGHT, &CLauncherWnd::OnCurCategoryMoveRight)
 	ON_WM_LBUTTONUP()
 	ON_WM_MOUSEMOVE()
+	ON_COMMAND(IDM_VIEW_RESETCOLUMNS, &CLauncherWnd::OnResetColumns)
+	ON_COMMAND(IDM_REFRESH, &CLauncherWnd::OnRefresh)
+	ON_COMMAND(IDM_SAVE, &CLauncherWnd::OnSave)
 END_MESSAGE_MAP()
 
 static const UINT indicators[] =
@@ -266,6 +269,7 @@ void CLauncherWnd::StopDragging(CPoint* point){
 			Launcher->GetCurrentCategory()->GetSelectedItem()->Move(mark.iItem);
 		}
 	}
+	//remove insert mark
 	mark.iItem = -1;
 	CList.SetInsertMark(&mark);
 
@@ -326,7 +330,12 @@ BOOL CLauncherWnd::OnCommand(WPARAM wParam, LPARAM lParam){
 	try{
 		switch(LOWORD(wParam)){
 			case IDM_FILE_PREF:
-				//DialogBoxParamW(hInst, MAKEINTRESOURCEW(IDD_PREFDLG), m_hWnd, PrefDlgProc, 0);
+				break;
+			case IDM_REFRESH:
+				this->UpdateListView(true);
+				break;
+			case IDM_SAVE:
+				Launcher->Save();
 				break;
 			case IDM_CATEGORY_ADDCATEGORY:
 				Launcher->NewCategory();
@@ -370,6 +379,9 @@ BOOL CLauncherWnd::OnCommand(WPARAM wParam, LPARAM lParam){
 			case IDM_VIEW_DETAILS:
 				this->SwitchListView(LVS_REPORT);
 				break;
+			case IDM_VIEW_RESETCOLUMNS:
+				this->ResetListViewColumns();
+				break;
 			case IDM_EXIT:
 				Launcher->ExitInstance();
 				break;
@@ -398,11 +410,11 @@ BOOL CLauncherWnd::OnCommand(WPARAM wParam, LPARAM lParam){
 
 
 void CLauncherWnd::OnFilePref(){
-	//DialogBoxParamW(hInst, MAKEINTRESOURCEW(IDD_PREFDLG), m_hWnd, PrefDlgProc, 0);
 	CPreferencesDlg dlg;
 	dlg.DoModal();
-	NOP
 }
+void CLauncherWnd::OnRefresh(){}
+void CLauncherWnd::OnSave(){}
 void CLauncherWnd::OnAddCategory(){
 	//Launcher->NewCategory();
 }
@@ -462,4 +474,7 @@ void CLauncherWnd::OnViewList(){
 }
 void CLauncherWnd::OnViewSmallicons(){
 	//this->SwitchListView(LVS_SMALLICON);
+}
+void CLauncherWnd::OnResetColumns(){
+	// nothing
 }

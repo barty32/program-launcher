@@ -10,32 +10,18 @@
 
 
 
-
-//UINT GetElementCount(LPCWSTR lpszCategory){
-//	//UINT i = 0;
-//	//while(i < MAX_CATEGORY_SIZE){
-//	//	//ReadIniValue throws when key is not found
-//	//	try{
-//	//		Launcher->ini->ReadValue(lpszCategory, wstring(to_wstring(i) + L".Path").c_str());
-//	//	}
-//	//	catch(const std::runtime_error&){
-//	//		break;
-//	//	}
-//	//	i++;
-//	//}
-//	//return i;
-//	return Launcher->ini->GetKeyCount(lpszCategory);
-//}
-
 bool GetElementProperties(const wstring& categoryName, UINT iIndex, ElementProps& lpProps){
 	wstring sIndex = to_wstring(iIndex);
-	lpProps.wsName = Launcher->ini->ReadString(categoryName, wstring(sIndex + L".Name").c_str());
-	lpProps.wsPath = Launcher->ini->ReadString(categoryName, wstring(sIndex + L".Path").c_str());
-	lpProps.wsPathIcon = Launcher->ini->ReadString(categoryName, wstring(sIndex + L".PathIcon").c_str());
-	lpProps.iIconIndex = Launcher->ini->ReadInt(categoryName, wstring(sIndex + L".IconIndex").c_str());
-	lpProps.wsPath64 = Launcher->ini->ReadString(categoryName, wstring(sIndex + L".Path64").c_str());
-	lpProps.bAdmin = Launcher->ini->ReadInt(categoryName, wstring(sIndex + L".Admin").c_str());
-	lpProps.bAbsolute = Launcher->ini->ReadInt(categoryName, wstring(sIndex + L".AbsolutePaths").c_str());
+	lpProps.wsPath = Launcher->ini->ReadString(categoryName, sIndex + L".Path", L"$err");
+	if(lpProps.wsPath == L"$err")
+		return false;
+
+	lpProps.wsName =     Launcher->ini->ReadString(categoryName, sIndex + L".Name");
+	lpProps.wsPathIcon = Launcher->ini->ReadString(categoryName, sIndex + L".PathIcon");
+	lpProps.wsPath64 =   Launcher->ini->ReadString(categoryName, sIndex + L".Path64");
+	lpProps.iIconIndex = Launcher->ini->ReadInt(categoryName, sIndex + L".IconIndex");
+	lpProps.bAdmin =     Launcher->ini->ReadInt(categoryName, sIndex + L".Admin");
+	lpProps.bAbsolute =  Launcher->ini->ReadInt(categoryName, sIndex + L".AbsolutePaths");
 
 	if(lpProps.wsPathIcon == L"$path"){
 		lpProps.wsPathIcon = lpProps.wsPath;
@@ -54,7 +40,7 @@ bool GetElementProperties(const wstring& categoryName, UINT iIndex, ElementProps
 	return true;
 }
 
-bool SaveElementProperties(LPCWSTR categoryName, UINT iIndex, const ElementProps& lpProps){
+bool SaveElementProperties(const wstring& categoryName, UINT iIndex, const ElementProps& lpProps){
 	wstring sIndex = to_wstring(iIndex);
 	ElementProps props = lpProps;
 	if(!lpProps.bAbsolute){
@@ -67,13 +53,13 @@ bool SaveElementProperties(LPCWSTR categoryName, UINT iIndex, const ElementProps
 		props.wsPathIcon = L"$path";
 	}
 
-	Launcher->ini->WriteString(categoryName, wstring(sIndex + L".Name").c_str(), props.wsName.c_str());
-	Launcher->ini->WriteString(categoryName, wstring(sIndex + L".Path").c_str(), props.wsPath.c_str());
-	Launcher->ini->WriteString(categoryName, wstring(sIndex + L".Path64").c_str(), props.wsPath64.c_str());
-	Launcher->ini->WriteString(categoryName, wstring(sIndex + L".PathIcon").c_str(), props.wsPathIcon.c_str());
-	Launcher->ini->WriteInt(categoryName, wstring(sIndex + L".IconIndex").c_str(), props.iIconIndex);
-	Launcher->ini->WriteInt(categoryName, wstring(sIndex + L".Admin").c_str(), props.bAdmin);
-	Launcher->ini->WriteInt(categoryName, wstring(sIndex + L".AbsolutePaths").c_str(), props.bAbsolute);
+	Launcher->ini->WriteString(categoryName, wstring(sIndex + L".Name"), props.wsName);
+	Launcher->ini->WriteString(categoryName, wstring(sIndex + L".Path"), props.wsPath);
+	Launcher->ini->WriteString(categoryName, wstring(sIndex + L".Path64"), props.wsPath64);
+	Launcher->ini->WriteString(categoryName, wstring(sIndex + L".PathIcon"), props.wsPathIcon);
+	Launcher->ini->WriteInt(categoryName, wstring(sIndex + L".IconIndex"), props.iIconIndex);
+	Launcher->ini->WriteInt(categoryName, wstring(sIndex + L".Admin"), props.bAdmin);
+	Launcher->ini->WriteInt(categoryName, wstring(sIndex + L".AbsolutePaths"), props.bAbsolute);
 	return true;
 }
 
@@ -118,18 +104,20 @@ void CLauncherWnd::ResizeTabControl(){
 
 
 
-wstring ExpandEnvStrings(wstring &source){
-	vector<WCHAR> vTemp(source.begin(), source.end());
-	vTemp.resize(MAX_PATH, 0);
-	ExpandEnvironmentStringsW(source.data(), &vTemp[0], vTemp.size());
-	return wstring(&vTemp[0]);
-}
-
-wstring RemoveFileSpecFromPath(wstring& path){
-	vector<WCHAR> vTemp(path.begin(), path.end());
-	PathRemoveFileSpecW(&vTemp[0]);
-	return wstring(&vTemp[0]);
-	//return wstring{strRes, static_cast<size_t>(cch)};
+wstring ExpandEnvStrings(const wstring &source){
+	//vector<WCHAR> vTemp(source.begin(), source.end());
+	//vTemp.resize(MAX_PATH, 0);
+	//ExpandEnvironmentStringsW(source.data(), &vTemp[0], vTemp.size());
+	//return wstring(&vTemp[0]);
+	wstring result;
+	result.resize(6);
+	DWORD size = ExpandEnvironmentStringsW(source.c_str(), result.data(), result.capacity());
+	if(size > result.capacity()){
+		result.resize(size);
+		ExpandEnvironmentStringsW(source.c_str(), result.data(), result.capacity());
+	}
+	result.resize(size - 1);
+	return result;
 }
 
 bool CProgramLauncher::NewItem(){
@@ -137,9 +125,11 @@ bool CProgramLauncher::NewItem(){
 		CMainWnd->MessageBoxW(GetString(IDS_NO_CATEGORY).c_str(), GetString(IDS_ERROR).c_str(), MB_ICONEXCLAMATION);
 		return false;
 	}
-	shared_ptr<CLauncherItem> pNewItem = make_shared<CLauncherItem>(nullptr, -1, L"", L"");
-	if(DialogBoxParamW(hInst, MAKEINTRESOURCEW(IDD_BTNSETTINGDLG), CMainWnd->GetSafeHwnd(), BtnEditDlgProc, (LPARAM)pNewItem.get())){
-		shared_ptr<CCategory> category = vCategories.at(pNewItem->parentIndex);
+	shared_ptr<CLauncherItem> pNewItem = make_shared<CLauncherItem>(nullptr, 0, L"", L"");
+	CBtnEditDlg dlg(pNewItem->props);
+	dlg.bNewButton = true;
+	if(dlg.DoModal()){
+		shared_ptr<CCategory> category = vCategories.at(dlg.uCategory);
 		category->vItems.push_back(pNewItem);
 		pNewItem->ptrParent = category.get();
 		pNewItem->parentIndex = category->vItems.size() - 1;
@@ -153,7 +143,7 @@ bool CProgramLauncher::NewItem(){
 
 bool CProgramLauncher::NewCategory(){
 	wstring wsNewName;
-	CUserInputDlg dlg(&wsNewName);
+	CUserInputDlg dlg(wsNewName);
 	if(dlg.DoModal() == 1){
 		shared_ptr<CCategory> newCategory = make_shared<CCategory>(this, vCategories.size(), wsNewName);
 		vCategories.push_back(newCategory);
@@ -199,8 +189,8 @@ CCategory* CProgramLauncher::GetCurrentCategory(){
 
 wstring GetString(UINT uID){
 	LPWSTR strRes = nullptr;
-	int cch = LoadStringW(hInst, uID, reinterpret_cast<LPWSTR>(&strRes), 0);
-	return wstring{strRes, static_cast<size_t>(cch)};
+	size_t cch = LoadStringW(hInst, uID, reinterpret_cast<LPWSTR>(&strRes), 0);
+	return wstring(strRes, cch);
 }
 
 
@@ -401,8 +391,6 @@ vector<int> StrSplitToInt(const wstring& lpSource, const wchar_t lpDelim){
 bool AddLetterToPath(wstring& path){
 
 	WCHAR szDriveLetter[2];
-	BOOL bFoundDelim = FALSE;
-
 	if(path.size() < 2) return false;
 
 	// Get current drive letter
@@ -413,8 +401,6 @@ bool AddLetterToPath(wstring& path){
 	// Check if drive letter already exists
 	wstring expandedPath = ExpandEnvStrings(path);
 	if(expandedPath[0] == L'*' && expandedPath[1] == L':'){
-		//path.insert(path.begin(), szDriveLetter[0]);
-		//path.insert(path.begin(), L':');
 		path[0] = szDriveLetter[0];
 		return true;
 	}
@@ -427,12 +413,6 @@ bool AddLetterToPath(wstring& path){
 // @return Returns 1 if letter was removed, 0 if not found
 //
 bool RemoveLetterFromPath(wstring& path){
-	//size_t pos = path.find(L':');
-	//if(pos != path.npos){
-	//	path.erase(path.begin(), path.begin() + ++pos);
-	//	return true;
-	//}
-	//return false;
 	if(((path[0] > 0x40 && path[0] < 0x5B) || (path[0] > 0x60 && path[0] < 0x7B)) && path[1] == L':'){
 		path[0] = L'*';
 		return true;

@@ -25,12 +25,6 @@ CProgramLauncher::CProgramLauncher() noexcept{
 
 	LPWSTR resultPath = null;
 
-	wstring pth = L"*:\\Users\\barty";
-
-	AddLetterToPath(pth);
-
-	NOP
-
 	// Locate .ini file
 
 	//First try with MAX_PATH characters
@@ -109,25 +103,6 @@ SUCCESS_APPDATA:
 	delete[] path;
 	delete[] expPath;
 	return;
-	
-
-	//wstring tmp = L"	1 , 42	,1582y007 ";
-	//vector<int> test = StrSplitToInt(tmp, L',');
-	//NOP
-
-
-	//::GetModuleFileNameW(null, szIniPath, _countof(szIniPath));
-	//PathRemoveFileSpecW(szIniPath);
-	//PathAppendW(szIniPath, TEXT(INI_FILE_NAME));
-	//if(!PathFileExistsW(szIniPath)){
-	//	WCHAR szNewPath[MAX_PATH];
-	//	ExpandEnvironmentStringsW(L"%AppData%\\Program Launcher", szNewPath, _countof(szNewPath));
-	//	PathAppendW(szNewPath, TEXT(INI_FILE_NAME));
-	//	if(PathFileExistsW(szNewPath)){
-	//		wcscpy_s(szIniPath, _countof(szIniPath), szNewPath);
-	//	}
-	//}
-	//ini = new IniParser(szIniPath);
 }
 
 
@@ -201,6 +176,13 @@ BOOL CProgramLauncher::InitInstance(){
 
 int CProgramLauncher::ExitInstance(){
 
+	this->Save();
+	delete this->ini;
+
+	return CWinApp::ExitInstance();
+}
+
+void CProgramLauncher::Save(){
 	//save options
 	ini->WriteInt(L"general", L"ShowAppNames", options.ShowAppNames);
 	ini->WriteInt(L"general", L"CloseAfterLaunch", options.CloseAfterLaunch);
@@ -209,17 +191,23 @@ int CProgramLauncher::ExitInstance(){
 	ini->WriteInt(L"general", L"UseIconCaching", options.UseIconCaching);
 
 	//appereance
-	//ini->WriteInt(L"appereance", L"IconSize", options.IconSize);
-	//ini->WriteInt(L"appereance", L"IconSpacingHorizontal", options.IconSpacingHorizontal);
-	//ini->WriteInt(L"appereance", L"IconSpacingVertical", options.IconSpacingVertical);
+	ini->WriteInt(L"appereance", L"IconSize", options.IconSize);
+	ini->WriteInt(L"appereance", L"IconSpacingHorizontal", options.IconSpacingHorizontal);
+	ini->WriteInt(L"appereance", L"IconSpacingVertical", options.IconSpacingVertical);
 
 	//save categories
 	wstring str;
-
 	for(auto &cat : vCategories){
 		str.append(cat->wsCategoryName);
 		str.append(L";");
-		//for(size_t i = 0; i < cat->vItems.size(); i++){
+	}
+	if(!str.empty()){
+		str.pop_back();
+		ini->WriteString(L"categories", L"Categories", str.c_str());
+	}
+
+	//save elements
+	//for(size_t i = 0; i < cat->vItems.size(); i++){
 		//	auto &item = cat->vItems[i];
 		//	ElementProps props;
 		//	props.wsName = item->wsName;
@@ -231,21 +219,12 @@ int CProgramLauncher::ExitInstance(){
 		//	props.bAbsolute = item->bAbsolute;
 		//	SaveElementProperties(cat->wsCategoryName.c_str(), i, props);
 		//}
-	}
-
-	if(!str.empty()){
-		str.pop_back();
-		ini->WriteString(L"categories", L"Categories", str.c_str());
-	}
 
 	//TODO: if(fRebuildIconCache){
 		//::CreateThread(null, 0, RebuildIconCache, null, 0, 0);
 		//RebuildIconCache();
 	//}
-
-	delete this->ini;
-
-	return CWinApp::ExitInstance();
+	ini->Flush();
 }
 
 
@@ -254,34 +233,14 @@ BEGIN_MESSAGE_MAP(CProgramLauncher, CWinApp)
 END_MESSAGE_MAP()
 
 
-
-// CAboutDlg dialog used for App About
-
-class CAboutDlg : public CDialogEx{
-	public:
-	CAboutDlg() noexcept;
-
-// Dialog Data
-#ifdef AFX_DESIGN_TIME
-	enum{ IDD = IDD_ABOUTBOX };
-#endif
-
-	protected:
-	//virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-
-// Implementation
-	public:
-	virtual BOOL OnInitDialog();
-};
-
-CAboutDlg::CAboutDlg() noexcept : CDialogEx(IDD_ABOUTBOX){}
+CAboutDlg::CAboutDlg() noexcept : CDialog(IDD_ABOUTBOX){}
 
 //void CAboutDlg::DoDataExchange(CDataExchange* pDX){
-//	CDialogEx::DoDataExchange(pDX);
+//	CDialog::DoDataExchange(pDX);
 //}
 
 BOOL CAboutDlg::OnInitDialog(){
-	CDialogEx::OnInitDialog();
+	CDialog::OnInitDialog();
 
 	//center the dialog
 	CenterWindow();

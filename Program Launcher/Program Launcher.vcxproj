@@ -194,6 +194,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Dialogs.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Program Launcher.h" />
@@ -201,6 +202,7 @@
     <ClInclude Include="res\resource.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CBtnEditDlg.cpp" />
     <ClCompile Include="CCategory.cpp" />
     <ClCompile Include="CLauncherWnd.cpp" />
     <ClCompile Include="CLauncherItem.cpp" />

@@ -172,6 +172,19 @@ void CLauncherWnd::ResizeListView(){
 }
 
 
+void CLauncherWnd::ResetListViewColumns(){
+
+	const int colWidths[] = {160,300,300,300,100,80,80};
+	int colOrder[COL_COUNT];
+	for(int i = 0; i < COL_COUNT; i++){
+		CList.SetColumnWidth(i, colWidths[i]);
+		colOrder[i] = i;
+	}
+	CList.SetColumnOrderArray(COL_COUNT, colOrder);
+	this->Invalidate(0);
+}
+
+
 
 
 bool CLauncherWnd::DoListViewContextMenu(INT pX, INT pY){

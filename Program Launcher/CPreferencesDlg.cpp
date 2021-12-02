@@ -7,16 +7,16 @@
 
 // CPreferencesDlg dialog
 
-IMPLEMENT_DYNAMIC(CPreferencesDlg, CDialogEx)
+IMPLEMENT_DYNAMIC(CPreferencesDlg, CDialog)
 
 CPreferencesDlg::CPreferencesDlg(CWnd* pParent /*=nullptr*/)
-	: CDialogEx(IDD_PREFDLG, pParent),
+	: CDialog(IDD_PREFDLG, pParent),
 	currentOptions(Launcher->options){}
 
 CPreferencesDlg::~CPreferencesDlg(){}
 
 void CPreferencesDlg::DoDataExchange(CDataExchange* pDX){
-	CDialogEx::DoDataExchange(pDX);
+	CDialog::DoDataExchange(pDX);
 	DDX_Radio(pDX, IDC_PREFDLG_APPNAMES_DONTSHOW, reinterpret_cast<int&>(currentOptions.ShowAppNames));
 	DDX_Check(pDX, IDC_PREFDLG_CLOSEAFTERLAUNCH, reinterpret_cast<BOOL&>(currentOptions.CloseAfterLaunch));
 	DDX_Check(pDX, IDC_PREFDLG_ICONCACHING, reinterpret_cast<BOOL&>(currentOptions.UseIconCaching));
@@ -38,7 +38,7 @@ void CPreferencesDlg::DoDataExchange(CDataExchange* pDX){
 
 
 
-BEGIN_MESSAGE_MAP(CPreferencesDlg, CDialogEx)
+BEGIN_MESSAGE_MAP(CPreferencesDlg, CDialog)
 	ON_BN_CLICKED(IDC_PREFDLG_RESET, &CPreferencesDlg::OnReset)
 	ON_BN_CLICKED(IDC_PREFDLG_APPNAMES_DONTSHOW, &CPreferencesDlg::OnAppNamesClicked)
 	ON_BN_CLICKED(IDC_PREFDLG_APPNAMES_INTOOLTIP, &CPreferencesDlg::OnAppNamesClicked)
@@ -52,7 +52,7 @@ END_MESSAGE_MAP()
 
 // CPreferencesDlg message handlers
 BOOL CPreferencesDlg::OnInitDialog(){
-	CDialogEx::OnInitDialog();
+	CDialog::OnInitDialog();
 
 	//make copy of current options
 	oldOptions = currentOptions;
@@ -87,7 +87,7 @@ void CPreferencesDlg::OnOK(){
 
 	ApplyOptions(currentOptions, OPT_ALL);
 
-	CDialogEx::OnOK();
+	CDialog::OnOK();
 }
 
 
@@ -96,7 +96,7 @@ void CPreferencesDlg::OnCancel(){
 
 	ApplyOptions(currentOptions, OPT_ALL);
 
-	CDialogEx::OnCancel();
+	CDialog::OnCancel();
 }
 
 
@@ -124,7 +124,7 @@ void CPreferencesDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 	if(*(CSliderCtrl*)pScrollBar == m_IconSizeSlider && nSBCode == TB_ENDTRACK){
 		this->ApplyOptions(currentOptions, OPT_SIZE);
 	}
-	CDialogEx::OnHScroll(nSBCode, nPos, pScrollBar);
+	CDialog::OnHScroll(nSBCode, nPos, pScrollBar);
 }
 
 

@@ -11,7 +11,11 @@
 //  Copyright ©2021, barty12
 // 
 // 
-// To-do:
+// To-do list:
+// FIX: status bar
+// ADD: drop file support
+// FIX: show no category tip
+// 
 // FIX: remove grid in details view
 // ADD: launch shortcut
 // ADD: search function
@@ -19,10 +23,7 @@
 // ADD: sort options
 // FIX: reordering multiline tabs
 // FIX: cancel tab reorder with ESC
-// ADD: drop file support
 // ADD: support for UWP apps
-// FIX: status bar
-// 
 // ADD: helper ids to dialogs
 // ADD: icons to tab control
 // ADD: icons to menu items
@@ -282,19 +283,18 @@ INT  GetIconIndexFromPath(LPWSTR pszIconPath);
 // icon functions
 INT SaveIconFromResource(LPCWSTR lpszResourcePath, WORD iIconIndex, LPCWSTR lpszResultFileName);
 
-//C++ functions
-wstring ExpandEnvStrings(wstring& source);
-wstring RemoveFileSpecFromPath(wstring& path);
+// string functions
+wstring ExpandEnvStrings(const wstring& source);
 wstring GetString(UINT uID);
 
-//UINT GetElementCount(LPCWSTR lpszCategory);
-
+// path functions
 bool AddLetterToPath(wstring& path);
 bool RemoveLetterFromPath(wstring& path);
 
 bool GetElementProperties(const wstring& categoryName, UINT iIndex, ElementProps& lpProps);
-bool SaveElementProperties(LPCWSTR categoryName, UINT iIndex, const ElementProps& lpProps);
+bool SaveElementProperties(const wstring& categoryName, UINT iIndex, const ElementProps& lpProps);
 
+//array-to-string conversion
 wstring StrJoin(vector<wstring> arrStr, const wchar_t* lpDelim = L",");
 wstring StrJoinFromInt(vector<int> arrStr, const wchar_t* lpDelim = L",");
 vector<wstring> StrSplit(const wstring& lpSource, const wchar_t lpDelim = L',');
@@ -363,6 +363,7 @@ class CProgramLauncher : public CWinApp{
 	virtual BOOL InitInstance();
 	virtual int ExitInstance();
 
+	void Save();
 	bool NewItem();
 	bool NewCategory();
 	void ReindexCategories(UINT iStart = 0);
@@ -406,6 +407,7 @@ public:
 	void UpdateListView(bool bUpdateImageList = false);
 	void ResizeListView();
 	void SwitchListView(DWORD dwView);
+	void ResetListViewColumns();
 	bool DoListViewContextMenu(INT pX, INT pY);
 	void StopDragging(CPoint* point);
 
@@ -455,6 +457,9 @@ public:
 	afx_msg void OnCurCategoryMoveLeft();
 	afx_msg void OnCurCategoryMoveRight();
 	
+	afx_msg void OnResetColumns();
+	afx_msg void OnRefresh();
+	afx_msg void OnSave();
 };
 
 
@@ -470,7 +475,7 @@ class CCategory{
 	CImageList imSmall;
 	CImageList imLarge;
 
-	CCategory(CProgramLauncher* ptrParent, UINT parentIndex, wstring wsName);
+	CCategory(CProgramLauncher* ptrParent, const UINT parentIndex, const wstring& wsName);
 	int LoadElements();
 
 	//Actions
@@ -491,18 +496,21 @@ public:
 	CCategory* ptrParent;
 	UINT parentIndex;
 
-	wstring wsPath;		//path to the executable
-	wstring wsPath64;	//path to the 64-bit version of the executable
-	wstring wsPathIcon;	//path to the icon
-	wstring wsName;		//name that is displayed under icon / in tooltip
-	int     iIconIndex;
-	bool   bAdmin;		//run program as admin
-	bool   bAbsolute;	//use absolute paths
+	ElementProps props;
+
+	//don't use
+	wstring& wsPath = props.wsPath;			//path to the executable
+	wstring& wsPath64 = props.wsPath64;		//path to the 64-bit version of the executable
+	wstring& wsPathIcon = props.wsPathIcon;	//path to the icon
+	wstring& wsName = props.wsName;			//name that is displayed under icon / in tooltip
+	int&     iIconIndex = props.iIconIndex;
+	bool&   bAdmin = props.bAdmin;			//run program as admin
+	bool&   bAbsolute = props.bAbsolute;	//use absolute paths
 
 	HICON hItemIcon = nullptr;
 
-	CLauncherItem(CCategory* ptrParent, UINT parentIndex, wstring wsName, wstring wsPath, wstring wsPathIcon = L"", int iIconIndex = 0, wstring wsPath64 = L"", bool bAdmin = false, bool bAbsolute = false);
-	CLauncherItem(CCategory* ptrParent, UINT parentIndex, const ElementProps& props);
+	CLauncherItem(CCategory* ptrParent, const UINT parentIndex, const wstring& wsName, const wstring& wsPath, const wstring& wsPathIcon = L"", const int iIconIndex = 0, const wstring& wsPath64 = L"", const bool bAdmin = false, const bool bAbsolute = false);
+	CLauncherItem(CCategory* ptrParent, const UINT parentIndex, const ElementProps& props);
 	~CLauncherItem();
 	
 	HICON LoadIcon(UINT nIconSize, HICON* phSmall = null);
@@ -510,80 +518,13 @@ public:
 	bool Edit();
 	void Remove(bool bAsk = true);
 	bool Move(UINT newPos, bool bRelative = false);
-	bool Launch();
+	bool Launch() const;
 	void InsertIntoListView();
 	void UpdateInListView();
 };
 
 
+#include "Dialogs.h"
 
 
-// CUserInputDlg dialog
-
-class CUserInputDlg : public CDialogEx{
-	DECLARE_DYNAMIC(CUserInputDlg)
-
-	public:
-	CUserInputDlg(wstring* pName, CWnd* pParent = nullptr);   // standard constructor
-	virtual ~CUserInputDlg();
-
-	wstring* m_wsName;
-
-// Dialog Data
-#ifdef AFX_DESIGN_TIME
-	enum{ IDD = IDD_USERINPUTDLG };
-#endif
-
-	protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-
-	DECLARE_MESSAGE_MAP()
-	public:
-	virtual BOOL OnInitDialog();
-	afx_msg void OnUserInput();
-	virtual void OnOK();
-};
-
-
-
-// CPreferencesDlg dialog
-
-class CPreferencesDlg : public CDialogEx{
-	DECLARE_DYNAMIC(CPreferencesDlg)
-
-	public:
-	CPreferencesDlg(CWnd* pParent = nullptr);   // standard constructor
-	virtual ~CPreferencesDlg();
-
-	void SyncSlider(CSpinButtonCtrl& spin, CSliderCtrl& slider, int maxVal);
-	void ApplyOptions(CProgramLauncher::_options& options, DWORD dwFilter);
-	CProgramLauncher::_options oldOptions;
-	CProgramLauncher::_options& currentOptions;
-
-// Dialog Data
-#ifdef AFX_DESIGN_TIME
-	enum{ IDD = IDD_PREFDLG };
-#endif
-
-	protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-
-	DECLARE_MESSAGE_MAP()
-	public:
-	virtual BOOL OnInitDialog();
-	virtual void OnOK();
-	virtual void OnCancel();
-	afx_msg void OnReset();
-	afx_msg void OnAppNamesClicked();
-	afx_msg void OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
-	afx_msg void OnIconSizeEditUpdate();
-	afx_msg void OnHSpacingEditUpdate();
-	afx_msg void OnVSpacingEditUpdate();
-	CSliderCtrl m_IconSizeSlider;
-	CSliderCtrl m_hSpacingSlider;
-	CSliderCtrl m_vSpacingSlider;
-	CSpinButtonCtrl m_IconSizeSpin;
-	CSpinButtonCtrl m_hSpacingSpin;
-	CSpinButtonCtrl m_vSpacingSpin;
-};
 

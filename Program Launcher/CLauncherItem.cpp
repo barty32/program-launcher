@@ -3,30 +3,25 @@
 #include "Program Launcher.h"
 
 
-CLauncherItem::CLauncherItem(CCategory* ptrParent, UINT parentIndex, wstring wsName, wstring wsPath, wstring wsPathIcon, int iIconIndex, wstring wsPath64, bool bAdmin, bool bAbsolute)
+CLauncherItem::CLauncherItem(CCategory* ptrParent, const UINT parentIndex, const wstring& wsName, const wstring& wsPath, const wstring& wsPathIcon, const int iIconIndex, const wstring& wsPath64, const bool bAdmin, const bool bAbsolute)
 	:
 	ptrParent(ptrParent),
-	parentIndex(parentIndex),
-	wsName(wsName),
-	wsPath(wsPath),
-	wsPathIcon(wsPathIcon),
-	iIconIndex(iIconIndex),
-	wsPath64(wsPath64),
-	bAdmin(bAdmin),
-	bAbsolute(bAbsolute)
-{}
+	parentIndex(parentIndex)
+{
+	props.wsName = wsName;
+	props.wsPath = wsPath;
+	props.wsPathIcon = wsPathIcon;
+	props.iIconIndex = iIconIndex;
+	props.wsPath64 = wsPath64;
+	props.bAdmin = bAdmin;
+	props.bAbsolute = bAbsolute;
+}
 
-CLauncherItem::CLauncherItem(CCategory* ptrParent, UINT parentIndex, const ElementProps& props)
+CLauncherItem::CLauncherItem(CCategory* ptrParent, const UINT parentIndex, const ElementProps& props)
 	:
 	ptrParent(ptrParent),
 	parentIndex(parentIndex),
-	wsName(props.wsName),
-	wsPath(props.wsPath),
-	wsPathIcon(props.wsPathIcon),
-	iIconIndex(props.iIconIndex),
-	wsPath64(props.wsPath64),
-	bAdmin(props.bAdmin),
-	bAbsolute(props.bAbsolute)
+	props(props)
 {}
 
 
@@ -42,7 +37,9 @@ CLauncherItem::~CLauncherItem(){
 
 
 bool CLauncherItem::Edit(){
-	if(DialogBoxParamW(hInst, MAKEINTRESOURCEW(IDD_BTNSETTINGDLG), CMainWnd->GetSafeHwnd(), BtnEditDlgProc, (LPARAM)this)){
+	CBtnEditDlg dlg(props);
+	dlg.bNewButton = false;
+	if(dlg.DoModal()){
 		HICON hSmall;
 		ptrParent->imLarge.Replace(parentIndex, this->LoadIcon(MAKELPARAM(Launcher->options.IconSize, SMALL_ICON_SIZE), &hSmall));
 		ptrParent->imSmall.Replace(parentIndex, hSmall);
@@ -100,11 +97,12 @@ bool CLauncherItem::Move(UINT newPos, bool bRelative){
 // @param nCategoryIndex - id of category
 // @return 1 if success, 0 if fail (Returns the handle to the new process)
 // 
-bool CLauncherItem::Launch(){
+bool CLauncherItem::Launch() const{
 
 	//expand enviromnent variables
 	wstring wsExpPath = ExpandEnvStrings(wsPath);
-	wstring wsExpPath64 = ExpandEnvStrings(wsPath64);
+	wstring wsExpPath64;
+	CString directory;
 
 	SHELLEXECUTEINFO shExInfo;
 	shExInfo.cbSize = sizeof(shExInfo);
@@ -112,15 +110,17 @@ bool CLauncherItem::Launch(){
 	shExInfo.hwnd = CMainWnd->GetSafeHwnd();
 	shExInfo.lpVerb = bAdmin ? L"runas" : nullptr;
 	if(Is64BitWindows() && wsPath64.size()){
-		shExInfo.lpFile = wsPath64.c_str();
-		wstring path(RemoveFileSpecFromPath(wsPath64));
-		shExInfo.lpDirectory = path.c_str();
+		wsExpPath64 = ExpandEnvStrings(wsPath64);
+		shExInfo.lpFile = wsExpPath64.c_str();
+		directory = wsExpPath64.c_str();
 	}
 	else{
-		shExInfo.lpFile = wsPath.c_str();
-		wstring path(RemoveFileSpecFromPath(wsPath));
-		shExInfo.lpDirectory = path.c_str();
+		shExInfo.lpFile = wsExpPath.c_str();
+		directory = wsExpPath.c_str();
 	}
+	PathRemoveFileSpecW(directory.GetBuffer());
+	directory.ReleaseBuffer();
+	shExInfo.lpDirectory = directory;
 	shExInfo.lpParameters = L"";// Additional parameters
 	shExInfo.nShow = SW_SHOW;
 	shExInfo.hInstApp = 0;
@@ -235,10 +235,10 @@ INT_PTR CALLBACK BtnEditDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 			int wmNotify = HIWORD(wParam);
 			switch(wmId){
 				case IDC_BTNDLG64CHECK:
-					if(wmNotify == BN_CLICKED){
-						Edit_Enable(GetDlgItem(hDlg, IDC_BTNDLGPATH64EDIT), IsDlgButtonChecked(hDlg, IDC_BTNDLG64CHECK));
-						Button_Enable(GetDlgItem(hDlg, IDC_BTNDLGPATH64BROWSE), IsDlgButtonChecked(hDlg, IDC_BTNDLG64CHECK));
-					}
+					//if(wmNotify == BN_CLICKED){
+					//	Edit_Enable(GetDlgItem(hDlg, IDC_BTNDLGPATH64EDIT), IsDlgButtonChecked(hDlg, IDC_BTNDLG64CHECK));
+					//	Button_Enable(GetDlgItem(hDlg, IDC_BTNDLGPATH64BROWSE), IsDlgButtonChecked(hDlg, IDC_BTNDLG64CHECK));
+					//}
 					break;
 				case IDC_BTNDLGPATHBROWSE:
 				{
@@ -326,111 +326,111 @@ INT_PTR CALLBACK BtnEditDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
 				break;
 				case IDC_BTNDLGPATHEDIT:
 				{
-					if(wmNotify == EN_CHANGE){
-						WCHAR szFileName[MAX_PATH];
-						Edit_GetText(GetDlgItem(hDlg, IDC_BTNDLGPATHEDIT), szFileName, MAX_PATH);
-						//check if the file exists
-						DWORD dwAttrib = GetFileAttributesW(szFileName);
+					//if(wmNotify == EN_CHANGE){
+					//	WCHAR szFileName[MAX_PATH];
+					//	Edit_GetText(GetDlgItem(hDlg, IDC_BTNDLGPATHEDIT), szFileName, MAX_PATH);
+					//	//check if the file exists
+					//	DWORD dwAttrib = GetFileAttributesW(szFileName);
 
-						if(!(dwAttrib == INVALID_FILE_ATTRIBUTES && (dwAttrib & FILE_ATTRIBUTE_DIRECTORY))){
-							//change icon path according to exe path
-							Edit_SetText(GetDlgItem(hDlg, IDC_BTNDLGICONEDIT), wstring(wstring(szFileName) + L",0").c_str());
-						}
-					}
+					//	if(!(dwAttrib == INVALID_FILE_ATTRIBUTES && (dwAttrib & FILE_ATTRIBUTE_DIRECTORY))){
+					//		//change icon path according to exe path
+					//		Edit_SetText(GetDlgItem(hDlg, IDC_BTNDLGICONEDIT), wstring(wstring(szFileName) + L",0").c_str());
+					//	}
+					//}
 				}
 				break;
 				case IDC_BTNDLGPATH64BROWSE:
 				{
-					if(wmNotify == BN_CLICKED){
-						OPENFILENAMEW ofn;
-						WCHAR szFileName[MAX_PATH] = L"";
+					//if(wmNotify == BN_CLICKED){
+					//	OPENFILENAMEW ofn;
+					//	WCHAR szFileName[MAX_PATH] = L"";
 
-						ZeroMemory(&ofn, sizeof(ofn));
+					//	ZeroMemory(&ofn, sizeof(ofn));
 
-						ofn.lStructSize = sizeof(ofn);
-						ofn.hwndOwner = hDlg;
-						ofn.lpstrFilter = L"Executables (*.exe)\0*.exe\0All Files (*.*)\0*.*\0";
-						ofn.lpstrFile = szFileName;
-						ofn.nMaxFile = MAX_PATH;
-						ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY | OFN_PATHMUSTEXIST;
-						ofn.lpstrDefExt = L"exe";
+					//	ofn.lStructSize = sizeof(ofn);
+					//	ofn.hwndOwner = hDlg;
+					//	ofn.lpstrFilter = L"Executables (*.exe)\0*.exe\0All Files (*.*)\0*.*\0";
+					//	ofn.lpstrFile = szFileName;
+					//	ofn.nMaxFile = MAX_PATH;
+					//	ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY | OFN_PATHMUSTEXIST;
+					//	ofn.lpstrDefExt = L"exe";
 
-						if(GetOpenFileNameW(&ofn)){
-							Edit_SetText(GetDlgItem(hDlg, IDC_BTNDLGPATH64EDIT), szFileName);
-						}
-					}
+					//	if(GetOpenFileNameW(&ofn)){
+					//		Edit_SetText(GetDlgItem(hDlg, IDC_BTNDLGPATH64EDIT), szFileName);
+					//	}
+					//}
 				}
 				break;
 				case IDC_BTNDLGICONEDIT:
 				{
-					if(wmNotify == EN_CHANGE){
-						//display icon preview if the icon path is changed
-						WCHAR szPathIcon[MAX_PATH + 5];
-						Edit_GetText(GetDlgItem(hDlg, IDC_BTNDLGICONEDIT), szPathIcon, MAX_PATH + 5);
-						INT nIconIndex = GetIconIndexFromPath(szPathIcon);
-						HICON hIcon = ExtractIconW(hInst, szPathIcon, nIconIndex);
-						Static_SetIcon(GetDlgItem(hDlg, IDC_BTNDLGICONPREV), hIcon);
-					}
+					//if(wmNotify == EN_CHANGE){
+					//	//display icon preview if the icon path is changed
+					//	WCHAR szPathIcon[MAX_PATH + 5];
+					//	Edit_GetText(GetDlgItem(hDlg, IDC_BTNDLGICONEDIT), szPathIcon, MAX_PATH + 5);
+					//	INT nIconIndex = GetIconIndexFromPath(szPathIcon);
+					//	HICON hIcon = ExtractIconW(hInst, szPathIcon, nIconIndex);
+					//	Static_SetIcon(GetDlgItem(hDlg, IDC_BTNDLGICONPREV), hIcon);
+					//}
 				}
 				break;
 				case IDC_BTNDLGICONPICK:
 				{
-					if(wmNotify == BN_CLICKED){
-						WCHAR szIconPathW[MAX_PATH + 5];
-						Edit_GetText(GetDlgItem(hDlg, IDC_BTNDLGICONEDIT), szIconPathW, MAX_PATH + 5);
-						INT iIconIndex = GetIconIndexFromPath(szIconPathW);
-						if(PickIconDlg(hDlg, szIconPathW, MAX_PATH, &iIconIndex)){
-							Edit_SetText(GetDlgItem(hDlg, IDC_BTNDLGICONEDIT), wstring(wstring(szIconPathW) + L',' + to_wstring(iIconIndex)).c_str());
-						}
-					}
+					//if(wmNotify == BN_CLICKED){
+					//	WCHAR szIconPathW[MAX_PATH + 5];
+					//	Edit_GetText(GetDlgItem(hDlg, IDC_BTNDLGICONEDIT), szIconPathW, MAX_PATH + 5);
+					//	INT iIconIndex = GetIconIndexFromPath(szIconPathW);
+					//	if(PickIconDlg(hDlg, szIconPathW, MAX_PATH, &iIconIndex)){
+					//		Edit_SetText(GetDlgItem(hDlg, IDC_BTNDLGICONEDIT), wstring(wstring(szIconPathW) + L',' + to_wstring(iIconIndex)).c_str());
+					//	}
+					//}
 				}
 				break;
 				case IDOK:
-				try{
-					if(!Edit_GetTextLength(GetDlgItem(hDlg, IDC_BTNDLGNAMEEDIT))){
-						throw IDS_ENTER_VALID_NAME;
-					}
-					if(!Edit_GetTextLength(GetDlgItem(hDlg, IDC_BTNDLGPATHEDIT))){
-						throw IDS_ENTER_VALID_PATH;
-					}
-					if(!Edit_GetTextLength(GetDlgItem(hDlg, IDC_BTNDLGICONEDIT))){
-						throw IDS_ENTER_VALID_PATH;
-					}
-					WCHAR buf[MAX_PATH + 5];
-					//store path
-					Edit_GetText(GetDlgItem(hDlg, IDC_BTNDLGPATHEDIT), buf, _countof(buf));
-					ptrItem->wsPath = buf;
-					//store 64-bit path
-					if(Button_GetCheck(GetDlgItem(hDlg, IDC_BTNDLG64CHECK))){
-						Edit_GetText(GetDlgItem(hDlg, IDC_BTNDLGPATH64EDIT), buf, _countof(buf));
-						ptrItem->wsPath64 = buf;
-					}
-					//store name
-					Edit_GetText(GetDlgItem(hDlg, IDC_BTNDLGNAMEEDIT), buf, _countof(buf));
-					ptrItem->wsName = buf;
-					//store icon path
-					Edit_GetText(GetDlgItem(hDlg, IDC_BTNDLGICONEDIT), buf, _countof(buf));
-					//store icon index
-					ptrItem->iIconIndex = GetIconIndexFromPath(buf);
-					ptrItem->wsPathIcon = buf;
-					ptrItem->bAdmin = IsDlgButtonChecked(hDlg, IDC_BTNDLGADMINCHECK);
-					ptrItem->bAbsolute = IsDlgButtonChecked(hDlg, IDC_BTNDLGABSCHECK);
+				//try{
+				//	if(!Edit_GetTextLength(GetDlgItem(hDlg, IDC_BTNDLGNAMEEDIT))){
+				//		throw IDS_ENTER_VALID_NAME;
+				//	}
+				//	if(!Edit_GetTextLength(GetDlgItem(hDlg, IDC_BTNDLGPATHEDIT))){
+				//		throw IDS_ENTER_VALID_PATH;
+				//	}
+				//	if(!Edit_GetTextLength(GetDlgItem(hDlg, IDC_BTNDLGICONEDIT))){
+				//		throw IDS_ENTER_VALID_PATH;
+				//	}
+				//	WCHAR buf[MAX_PATH + 5];
+				//	//store path
+				//	Edit_GetText(GetDlgItem(hDlg, IDC_BTNDLGPATHEDIT), buf, _countof(buf));
+				//	ptrItem->wsPath = buf;
+				//	//store 64-bit path
+				//	if(Button_GetCheck(GetDlgItem(hDlg, IDC_BTNDLG64CHECK))){
+				//		Edit_GetText(GetDlgItem(hDlg, IDC_BTNDLGPATH64EDIT), buf, _countof(buf));
+				//		ptrItem->wsPath64 = buf;
+				//	}
+				//	//store name
+				//	Edit_GetText(GetDlgItem(hDlg, IDC_BTNDLGNAMEEDIT), buf, _countof(buf));
+				//	ptrItem->wsName = buf;
+				//	//store icon path
+				//	Edit_GetText(GetDlgItem(hDlg, IDC_BTNDLGICONEDIT), buf, _countof(buf));
+				//	//store icon index
+				//	ptrItem->iIconIndex = GetIconIndexFromPath(buf);
+				//	ptrItem->wsPathIcon = buf;
+				//	ptrItem->bAdmin = IsDlgButtonChecked(hDlg, IDC_BTNDLGADMINCHECK);
+				//	ptrItem->bAbsolute = IsDlgButtonChecked(hDlg, IDC_BTNDLGABSCHECK);
 
-					if(ptrItem->parentIndex == -1){
-						ptrItem->parentIndex = ComboBox_GetCurSel(GetDlgItem(hDlg, IDC_BTNDLGCATSELECT));
-					}
-					
-					EndDialog(hDlg, TRUE);
-					return TRUE;
-				}
-				catch(int code){
-					MessageBoxW(hDlg, GetString(code).c_str(), GetString(IDS_ERROR).c_str(), MB_ICONEXCLAMATION | MB_OK);
-					return FALSE;
-				}
-				catch(...){
-					MessageBoxW(hDlg, GetString(IDS_ERROR).c_str(), GetString(IDS_ERROR).c_str(), MB_ICONEXCLAMATION | MB_OK);
-					return FALSE;
-				}
+				//	if(ptrItem->parentIndex == -1){
+				//		ptrItem->parentIndex = ComboBox_GetCurSel(GetDlgItem(hDlg, IDC_BTNDLGCATSELECT));
+				//	}
+				//	
+				//	EndDialog(hDlg, TRUE);
+				//	return TRUE;
+				//}
+				//catch(int code){
+				//	MessageBoxW(hDlg, GetString(code).c_str(), GetString(IDS_ERROR).c_str(), MB_ICONEXCLAMATION | MB_OK);
+				//	return FALSE;
+				//}
+				//catch(...){
+				//	MessageBoxW(hDlg, GetString(IDS_ERROR).c_str(), GetString(IDS_ERROR).c_str(), MB_ICONEXCLAMATION | MB_OK);
+				//	return FALSE;
+				//}
 				break;
 				case IDCANCEL:
 					EndDialog(hDlg, FALSE);
