@@ -17,7 +17,13 @@
 // The one and only CProgramLauncher object
 CProgramLauncher theApp;
 
-
+// Startup sequence:
+// 1. Get ini file location
+// 2. Parse ini file
+// 3. Load options
+// 4. Load categories
+// 5. Create and show main window
+// 6. Load elements
 
 CProgramLauncher::CProgramLauncher() noexcept{
 	hInst = GetModuleHandleW(null);
