@@ -27,33 +27,45 @@
     <ClInclude Include="res\resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="iniparser.h">
+    <ClInclude Include="pch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Dialogs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Program Launcher.c">
+    <ClCompile Include="Program Launcher.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="preferences.c">
+    <ClCompile Include="CommonFunctions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CommonFunctions.c">
+    <ClCompile Include="icon.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="icon.c">
+    <ClCompile Include="CCategory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ini.c">
+    <ClCompile Include="CLauncherItem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="category.c">
+    <ClCompile Include="ListView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="entrybutton.c">
+    <ClCompile Include="pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ListView.c">
+    <ClCompile Include="CLauncherWnd.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TabCtrl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CPreferencesDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CBtnEditDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -72,8 +84,5 @@
     <Image Include="res\ProgramLauncher.ico">
       <Filter>Resource Files</Filter>
     </Image>
-  </ItemGroup>
-  <ItemGroup>
-    <Manifest Include="Program Launcher.manifest" />
   </ItemGroup>
 </Project>

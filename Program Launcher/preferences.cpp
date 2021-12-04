@@ -1,9 +1,9 @@
 
-#include "framework.h"
+#include "pch.h"
 #include "Program Launcher.h"
-
-
+/*
 INT_PTR CALLBACK PrefDlgProc(HWND hDlg, UINT Message, WPARAM wParam, LPARAM lParam){
+	return 0;
 	static DWORD dwCurrentIconSpacing;
 	static INT nCurrentIconSize;
 	static INT nCurrentAppNamesState;
@@ -307,4 +307,4 @@ INT ChangeSliderValue(HWND hwndSlider, HWND hwndEditBox, INT GetValueFrom, INT n
 	}
 	bAllowEnChange = TRUE;
 	return nValue;
-}
+}*/
