@@ -96,6 +96,7 @@ class CBtnEditDlg : public CDialog{
 	afx_msg void OnPathChange();
 	afx_msg void OnIconPathChange();
 	virtual void OnOK();
+	bool FillData();
 	CComboBox m_categorySelect;
 	bool bNewButton = true;
 	UINT uCategory = 0;
@@ -108,6 +109,8 @@ class CBtnEditDlg : public CDialog{
 	BOOL m_bAbsPaths = false;
 	BOOL m_bAdmin = false;
 	BOOL m_64bitPath = false;
+	private:
+	HICON m_hPreview = null;
 };
 
 

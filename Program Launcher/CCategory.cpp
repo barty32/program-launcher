@@ -10,18 +10,6 @@
 // 
 // Functions included in this file:
 // 
-//		INT AddCategory(LPCTSTR lpszNewCategoryName)
-//		
-//		INT RemoveCategory(UINT nCategoryIndex)
-//		
-//		INT MoveCategory(INT nCategoryIndex, BOOL bLeft)
-//		
-//		INT RenameCategory(INT nCategoryIndex, LPTSTR lpszNewName)
-//		
-//		INT LoadCategoryList()
-//		
-//		INT SaveCategoryList()
-// 
 //  Copyright ©2021, barty12
 //
 
@@ -37,6 +25,9 @@ CCategory::CCategory(CProgramLauncher* ptrParent, const UINT parentIndex, const 
 {
 	imSmall.Create(SMALL_ICON_SIZE, SMALL_ICON_SIZE, ILC_COLOR32, 0, 0);
 	imLarge.Create(Launcher->options.IconSize, Launcher->options.IconSize, ILC_COLOR32, 0, 0);
+	//CFile file(L"iconcache.db", CFile::modeRead);
+	//CArchive ar(&file, CArchive::load);
+	//imLarge.Read(&ar);
 }
 
 
@@ -50,10 +41,11 @@ int CCategory::LoadElements(){
 		imSmall.Add(vItems[j]->LoadIcon(SMALL_ICON_SIZE));
 		if(parentIndex == Launcher->GetCurrentCategoryIndex()){
 			vItems[j]->InsertIntoListView();
-			int ret = CMainWnd->m_statusBar.GetStatusBarCtrl().SetText(wstring(to_wstring(j) + L" items").c_str(),0,0);
+			CMainWnd->m_statusBar.GetStatusBarCtrl().SetText(wstring(to_wstring(j) + L" items, loading...").c_str(), 255, 0);
 			//CMainWnd->m_statusBar.Invalidate();
 		}
 	}
+	CMainWnd->m_statusBar.GetStatusBarCtrl().SetText(wstring(to_wstring(j) + L" items").c_str(), 255, 0);
 	return j;
 }
 
@@ -83,6 +75,7 @@ bool CCategory::Remove(bool bAsk, bool bKeepItems){
 		}
 		CMainWnd->CTab.SetCurSel(CMainWnd->CTab.GetItemCount() - 1);
 		CMainWnd->UpdateListView();
+		Launcher->bRebuildIconCache = true;
 		return true;
 	}
 	return false;
@@ -101,12 +94,12 @@ bool CCategory::Move(UINT newPos, bool bRelative){
 		return false;
 	} 
 	else if(parentIndex < newPos){
-		for(UINT i = parentIndex; i < newPos; i++){
+		for(UINT i = parentIndex; i < newPos; ++i){
 			ptrParent->vCategories[i] = ptrParent->vCategories[i + 1];
 		}
 	} 
 	else{
-		for(UINT i = parentIndex; i > newPos; i--){
+		for(UINT i = parentIndex; i > newPos; --i){
 			ptrParent->vCategories[i] = ptrParent->vCategories[i - 1];
 		}
 	}
@@ -114,6 +107,7 @@ bool CCategory::Move(UINT newPos, bool bRelative){
 	ptrParent->ReindexCategories();
 
 	CMainWnd->UpdateListView(true);
+	Launcher->bRebuildIconCache = true;
 
 	return true;
 }
@@ -215,10 +209,11 @@ void CUserInputDlg::OnOK(){
 		this->EndDialog(true);
 		return;
 	} catch(int code){
-		this->MessageBoxW(GetString(code).c_str(), GetString(IDS_ERROR).c_str(), MB_ICONEXCLAMATION | MB_OK);
+		ErrorMsg(code);
 		return;
 	} catch(...){
-		this->MessageBoxW(GetString(IDS_ERROR).c_str(), GetString(IDS_ERROR).c_str(), MB_ICONEXCLAMATION | MB_OK);
+		ErrorMsg(IDS_ERROR);
+		ErrorHandlerDebug();
 		return;
 	}
 }

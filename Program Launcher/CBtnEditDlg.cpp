@@ -16,6 +16,7 @@ CBtnEditDlg::CBtnEditDlg(ElementProps& props, CWnd* pParent /*=nullptr*/)
 
 CBtnEditDlg::~CBtnEditDlg()
 {
+	DestroyIcon(m_hPreview);
 }
 
 void CBtnEditDlg::DoDataExchange(CDataExchange* pDX)
@@ -58,6 +59,7 @@ BOOL CBtnEditDlg::OnInitDialog(){
 
 	if(bNewButton){
 		SetWindowTextW(GetString(IDS_NEW_BUTTON).c_str());
+		this->FillData();
 	}
 	else{
 		SetWindowTextW(GetString(IDS_EDIT_BUTTON).c_str());
@@ -104,66 +106,74 @@ OFN_RETRY:
 	if(ofn.DoModal() == IDOK){
 		m_csPath = ofn.GetPathName();
 
-		//check for compatibility
-		DWORD dwExeType = 0;
-		if(GetBinaryTypeW(m_csPath, &dwExeType)){
-			switch(dwExeType){
-				//case SCS_32BIT_BINARY:
-				//	break;
-				case SCS_DOS_BINARY:
-					if(MessageBoxW(GetString(IDS_DOS_BINARY).c_str(), TEXT("MS-DOS Application"), MB_ICONEXCLAMATION | MB_YESNO) == IDNO){
-						goto OFN_RETRY;
-					}
-					break;
-				case SCS_WOW_BINARY:
-					if(MessageBoxW(GetString(IDS_WOW_BINARY).c_str(), TEXT("16-bit Application"), MB_ICONEXCLAMATION | MB_YESNO) == IDNO){
-						goto OFN_RETRY;
-					}
-					break;
-				case SCS_64BIT_BINARY:
-					if(MessageBoxW(GetString(IDS_64BIT_BINARY).c_str(), TEXT("64-bit Application"), MB_ICONEXCLAMATION | MB_YESNO) == IDNO){
-						goto OFN_RETRY;
-					}
-					break;
-			}
+		if(!this->FillData()){
+			goto OFN_RETRY;
 		}
-
-		//fill name edit box if it's empty
-		if(m_csName.IsEmpty()){
-			DWORD dwLen = GetFileVersionInfoSizeW(m_csPath, null);
-			if(dwLen){
-				LPVOID lpBlock = HeapAlloc(GetProcessHeap(), 0, dwLen);
-				if(lpBlock){
-					WORD* langInfo;
-					UINT cbLang;
-					WCHAR tszVerStrName[128];
-					LPVOID lpt;
-					UINT cbBufSize = 0;
-					GetFileVersionInfoW(m_csPath, 0, dwLen, lpBlock);
-					//Get the Product Name
-					//First, to get string information, we need to get language information.
-					VerQueryValueW(lpBlock, L"\\VarFileInfo\\Translation", (LPVOID*)&langInfo, &cbLang);
-					//Prepare the label -- default lang is bytes 0 & 1 of langInfo
-					_snwprintf_s(tszVerStrName, 128, _TRUNCATE, L"\\StringFileInfo\\% 04x% 04x\\% s", langInfo[0], langInfo[1], L"ProductName");
-					//Get the string from the resource data
-					if(VerQueryValueW(lpBlock, tszVerStrName, &lpt, &cbBufSize)){
-						m_csName = (LPCWSTR)lpt;
-					}
-					HeapFree(GetProcessHeap(), 0, lpBlock);
-				}
-			}
-		}
-		//tick the absolute paths checkbox 
-		WCHAR szDriveLetter[2];
-		if(m_csPath.GetLength() >= 2){
-			// Get current drive letter
-			if(GetModuleFileNameW(null, szDriveLetter, 2)){
-				m_bAbsPaths = m_csPath[0] != szDriveLetter[0];
-			}
-		}
-		UpdateData(false);
-		OnPathChange();
 	}
+}
+
+
+bool CBtnEditDlg::FillData(){
+	//check for compatibility
+	DWORD dwExeType = 0;
+	if(GetBinaryTypeW(m_csPath, &dwExeType)){
+		switch(dwExeType){
+			//case SCS_32BIT_BINARY:
+			//	break;
+			case SCS_DOS_BINARY:
+				if(MessageBoxW(GetString(IDS_DOS_BINARY).c_str(), TEXT("MS-DOS Application"), MB_ICONEXCLAMATION | MB_YESNO) == IDNO){
+					return false;
+				}
+				break;
+			case SCS_WOW_BINARY:
+				if(MessageBoxW(GetString(IDS_WOW_BINARY).c_str(), TEXT("16-bit Application"), MB_ICONEXCLAMATION | MB_YESNO) == IDNO){
+					return false;
+				}
+				break;
+			case SCS_64BIT_BINARY:
+				if(MessageBoxW(GetString(IDS_64BIT_BINARY).c_str(), TEXT("64-bit Application"), MB_ICONEXCLAMATION | MB_YESNO) == IDNO){
+					return false;
+				}
+				break;
+		}
+	}
+
+	//fill name edit box if it's empty
+	if(m_csName.IsEmpty()){
+		DWORD dwLen = GetFileVersionInfoSizeW(m_csPath, null);
+		if(dwLen){
+			LPVOID lpBlock = HeapAlloc(GetProcessHeap(), 0, dwLen);
+			if(lpBlock){
+				WORD* langInfo;
+				UINT cbLang;
+				WCHAR tszVerStrName[128];
+				LPVOID lpt;
+				UINT cbBufSize = 0;
+				GetFileVersionInfoW(m_csPath, 0, dwLen, lpBlock);
+				//Get the Product Name
+				//First, to get string information, we need to get language information.
+				VerQueryValueW(lpBlock, L"\\VarFileInfo\\Translation", (LPVOID*)&langInfo, &cbLang);
+				//Prepare the label -- default lang is bytes 0 & 1 of langInfo
+				_snwprintf_s(tszVerStrName, 128, _TRUNCATE, L"\\StringFileInfo\\% 04x% 04x\\% s", langInfo[0], langInfo[1], L"ProductName");
+				//Get the string from the resource data
+				if(VerQueryValueW(lpBlock, tszVerStrName, &lpt, &cbBufSize)){
+					m_csName = (LPCWSTR)lpt;
+				}
+				HeapFree(GetProcessHeap(), 0, lpBlock);
+			}
+		}
+	}
+	//tick the absolute paths checkbox 
+	WCHAR szDriveLetter[2];
+	if(m_csPath.GetLength() >= 2){
+		// Get current drive letter
+		if(GetModuleFileNameW(null, szDriveLetter, 2)){
+			m_bAbsPaths = m_csPath[0] != szDriveLetter[0];
+		}
+	}
+	UpdateData(false);
+	OnPathChange();
+	return true;
 }
 
 
@@ -213,8 +223,10 @@ void CBtnEditDlg::OnIconPathChange(){
 	UpdateData();
 	INT nIconIndex = GetIconIndexFromPath(m_csIconPath.GetBuffer());
 	m_csIconPath.ReleaseBuffer();
-	HICON hIcon = ExtractIconW(hInst, m_csIconPath, nIconIndex);
-	Static_SetIcon(GetDlgItem(IDC_BTNDLGICONPREV)->GetSafeHwnd(), hIcon);
+
+	DestroyIcon(m_hPreview);
+	m_hPreview = ExtractIconW(hInst, m_csIconPath, nIconIndex);
+	Static_SetIcon(GetDlgItem(IDC_BTNDLGICONPREV)->GetSafeHwnd(), m_hPreview);
 }
 
 
@@ -246,7 +258,7 @@ void CBtnEditDlg::OnOK(){
 
 		uCategory = m_categorySelect.GetCurSel();
 
-		EndDialog(true);
+		EndDialog(IDOK);
 		CDialog::OnOK();
 	} catch(int code){
 		MessageBoxW(GetString(code).c_str(), GetString(IDS_ERROR).c_str(), MB_ICONEXCLAMATION | MB_OK);

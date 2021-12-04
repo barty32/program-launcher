@@ -85,20 +85,23 @@ typedef struct _ENUMRESNAMES{
 //
 HICON CLauncherItem::LoadIcon(UINT nIconSize, HICON* phSmall){
 	
-	bool bUseIconCaching = Launcher->options.UseIconCaching;
-	
 	HICON hExtractedIcon = null;
 	HRESULT result;
+	phSmall = &hSmallIcon;
 	
 	//wstring wsIniPath(/*szIniPath*/L"");
 	wstring wsCachePath = ICON_CACHE_DIRECTORY L"\\" + to_wstring(ptrParent->parentIndex) + L',' + to_wstring(parentIndex) + L".ico";// (RemoveFileSpecFromPath(wsIniPath));
 	//wsCachePath.append(L"\\" ICON_CACHE_DIRECTORY L"\\" + to_wstring(ptrParent->parentIndex) + L',' + to_wstring(parentIndex) + L".ico");
 
-	if(bUseIconCaching){
+	DestroyIcon(hItemIcon);
+	DestroyIcon(hSmallIcon);
+	
+	if(Launcher->options.UseIconCaching){
 		if(PathFileExistsW(wsPathIcon.c_str())){
-			result = SHDefExtractIconW(wsCachePath.c_str(), iIconIndex, 0, &hExtractedIcon, phSmall, nIconSize);
+			
+			result = SHDefExtractIconW(wsCachePath.c_str(), iIconIndex, 0, &hItemIcon, &hSmallIcon, nIconSize);
 			if(result == S_OK){
-				return hExtractedIcon;
+				return hItemIcon;
 			}
 		}
 		else{
@@ -106,13 +109,13 @@ HICON CLauncherItem::LoadIcon(UINT nIconSize, HICON* phSmall){
 		}
 	}
 
-	result = SHDefExtractIconW(wsPathIcon.c_str(), iIconIndex, 0, &hExtractedIcon, phSmall, nIconSize);
+	result = SHDefExtractIconW(wsPathIcon.c_str(), iIconIndex, 0, &hItemIcon, &hSmallIcon, nIconSize);
 	if(result == S_OK){
 		LPWSTR lpExtension = PathFindExtensionW(wsPathIcon.c_str());
-		if(bUseIconCaching && lpExtension[0] != 0 && (wcscmp(lpExtension, L".exe") || wcscmp(lpExtension, L".dll"))){
-			//TODO: fRebuildIconCache = TRUE;
+		if(Launcher->options.UseIconCaching && lpExtension[0] != 0 && (wcscmp(lpExtension, L".exe") || wcscmp(lpExtension, L".dll"))){
+			Launcher->bRebuildIconCache = true;
 		}
-		return hExtractedIcon;
+		return hItemIcon;
 	}
 	//*phSmall = LoadIconW(hInst, MAKEINTRESOURCEW(IDI_DEFAULT));
 	return LoadIconW(hInst, MAKEINTRESOURCEW(IDI_DEFAULT));
@@ -140,11 +143,11 @@ BOOL CALLBACK EnumResNameProc(HMODULE hModule, LPCTSTR lpType, LPTSTR lpName, LP
 // @param nButtonIndex -
 // @return 1 if success, 0 if fail
 //
-INT SaveIconFromResource(LPCWSTR lpszResourcePath, WORD iIconIndex, LPCWSTR lpszResultFileName){
+bool SaveIconFromResource(const fs::path& lpszResourcePath, WORD iIconIndex, const fs::path& lpszResultFileName){
 
-	LPWSTR lpExtension = PathFindExtensionW(lpszResourcePath);
+	LPWSTR lpExtension = PathFindExtensionW(lpszResourcePath.c_str());
 	if(lpExtension[0] == 0){
-		return 0;
+		return false;
 	}
 	else if(wcscmp(lpExtension, L".exe") || wcscmp(lpExtension, L".dll")){
 		wstring wspath(lpszResourcePath);
@@ -152,7 +155,7 @@ INT SaveIconFromResource(LPCWSTR lpszResourcePath, WORD iIconIndex, LPCWSTR lpsz
 
 		HMODULE hExecutable = LoadLibraryExW(wsExpPath.c_str(), NULL, LOAD_LIBRARY_AS_DATAFILE);
 		if(!hExecutable){
-			return 0;
+			return false;
 		}
 		try{
 			LPWSTR lpszResultResId = 0;
@@ -177,8 +180,11 @@ INT SaveIconFromResource(LPCWSTR lpszResourcePath, WORD iIconIndex, LPCWSTR lpsz
 				throw std::runtime_error("resource_lock_error");
 			}
 
+			fs::create_directories(fs::path(lpszResultFileName).remove_filename());
 			std::ofstream resultStream(lpszResultFileName, std::ios::out | std::ios::binary | std::ios::trunc);
-
+			if(!resultStream.is_open()){
+				throw std::runtime_error("file_not_opened");
+			}
 			ICONHEADER iconHeader;
 			iconHeader.idReserved = 0;
 			iconHeader.idType = 1;
@@ -219,14 +225,15 @@ INT SaveIconFromResource(LPCWSTR lpszResourcePath, WORD iIconIndex, LPCWSTR lpsz
 				dwCurrentDataOffset = static_cast<DWORD>(resultStream.tellp());
 				resultStream.seekp(pos);
 			}
+			resultStream.close();
 			FreeLibrary(hExecutable);
 		}
 		catch(const std::exception&){
 			FreeLibrary(hExecutable);
-			return 0;
+			return false;
 		}
 	}
-	return 1;
+	return true;
 }
 
 
@@ -254,9 +261,8 @@ INT SaveIconFromResource(LPCWSTR lpszResourcePath, WORD iIconIndex, LPCWSTR lpsz
 void CProgramLauncher::RebuildIconCache(){
 
 	if(options.UseIconCaching){
-
 		//first empty icon cache folder
-		std::filesystem::remove_all(ICON_CACHE_DIRECTORY);
+		fs::remove_all(ICON_CACHE_DIRECTORY);
 		int i = 0;
 		for(auto &cat : vCategories){
 			int j = 0;
@@ -266,9 +272,7 @@ void CProgramLauncher::RebuildIconCache(){
 			}
 			i++;
 		}
+		bRebuildIconCache = false;
 	}
-	//TODO fRebuildIconCache = FALSE;
-
-	//return 1;
 }
 

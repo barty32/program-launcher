@@ -116,11 +116,6 @@ void CCategory::UpdateImageLists(int nIconSizeOfLargeImageList){
 	}
 
 	//// Open the archive to store the image list in.
-	//WCHAR test[260];
-	//GetModuleFileNameW(null, test, 260);
-	//PathRemoveFileSpecW(test);
-	//int ret = SetCurrentDirectoryW(test);
-	//GetCurrentDirectoryW(260, test);
 	//CFile myFile(L"iconcache.db", CFile::modeCreate | CFile::modeWrite);
 	//CArchive ar(&myFile, CArchive::store);
 
@@ -135,6 +130,7 @@ void CCategory::UpdateImageLists(int nIconSizeOfLargeImageList){
 // 
 void CLauncherWnd::UpdateListView(bool bUpdateImageList){
 
+	int curSel = Launcher->GetSelectedItemIndex();
 	//empty the list
 	CList.DeleteAllItems();
 	try{
@@ -148,6 +144,10 @@ void CLauncherWnd::UpdateListView(bool bUpdateImageList){
 		for(auto &item : Launcher->GetCurrentCategory()->vItems){
 			item->InsertIntoListView();
 		}
+		CList.SetItemState(curSel, LVIS_SELECTED | LVIS_FOCUSED, 0xFF);
+
+		m_statusBar.GetStatusBarCtrl().SetText(wstring(to_wstring(CList.GetItemCount()) + L" items").c_str(), 255, 0);
+
 	}catch(...){}
 }
 
@@ -223,4 +223,29 @@ bool CLauncherWnd::DoListViewContextMenu(INT pX, INT pY){
 	this->UpdateMenu(submenu);
 	submenu->TrackPopupMenu(0, displayCoords.x, displayCoords.y, CMainWnd);
 	return true;
+}
+
+
+// CCustomListCtrl
+
+BEGIN_MESSAGE_MAP(CCustomListCtrl, CListCtrl)
+	ON_WM_PAINT()
+END_MESSAGE_MAP()
+
+// CCustomListCtrl message handlers
+
+void CCustomListCtrl::OnPaint(){
+	 // device context for painting
+					   // TODO: Add your message handler code here
+					   // Do not call CListCtrl::OnPaint() for painting messages
+	if(CMainWnd->CTab.GetItemCount() == 0){
+		CPaintDC dc(this);
+		RECT clientRect;
+		GetClientRect(&clientRect);
+		dc.SelectObject(GetStockObject(DEFAULT_GUI_FONT));
+		dc.DrawTextW(GetString(IDS_FIRST_STARTUP_TIP).c_str(), &clientRect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+	}
+	else{
+		CListCtrl::OnPaint();
+	}
 }

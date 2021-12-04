@@ -44,6 +44,7 @@ BEGIN_MESSAGE_MAP(CLauncherWnd, CFrameWnd)
 	ON_COMMAND(IDM_VIEW_RESETCOLUMNS, &CLauncherWnd::OnResetColumns)
 	ON_COMMAND(IDM_REFRESH, &CLauncherWnd::OnRefresh)
 	ON_COMMAND(IDM_SAVE, &CLauncherWnd::OnSave)
+	ON_WM_DROPFILES()
 END_MESSAGE_MAP()
 
 static const UINT indicators[] =
@@ -68,6 +69,8 @@ int CLauncherWnd::OnCreate(LPCREATESTRUCT lpCreateStruct){
 	//SetIcon(LoadIconW(nullptr, MAKEINTRESOURCEW(IDC_PROGRAMLAUNCHER)), true);
 	CenterWindow();
 
+	m_statusBar.Create(this);
+	m_statusBar.GetStatusBarCtrl().SetSimple();
 	//if(!m_wndStatusBar.Create(this)){
 	//	TRACE0("Failed to create status bar\n");
 	//	return -1;      // fail to create
@@ -201,6 +204,10 @@ BOOL CLauncherWnd::OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult){
 				case VK_F2:
 					CList.EditLabel(CList.GetNextItem(-1, LVNI_SELECTED));
 					break;
+				case VK_F5:
+					this->UpdateListView(true);
+					Launcher->RebuildIconCache();
+					break;
 				case VK_ESCAPE:
 					if(m_bDragging){
 						this->StopDragging(null);
@@ -220,13 +227,15 @@ BOOL CLauncherWnd::OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult){
 			}
 		}
 		else if(pInfo->code == LVN_BEGINDRAG){
-			Launcher->GetCurrentCategory()->imLarge.BeginDrag(CList.GetNextItem(-1, LVNI_SELECTED), {-10,-10});
-			POINT pt = ((LPNMLISTVIEW)lParam)->ptAction;
-			CList.ClientToScreen(&pt);
-			Launcher->GetCurrentCategory()->imLarge.DragEnter(null, pt);
-			m_bDragging = true;
-			SetCapture();
-			SetFocus();
+			try{
+				Launcher->GetCurrentCategory()->imLarge.BeginDrag(CList.GetNextItem(-1, LVNI_SELECTED), {-10,-10});
+				POINT pt = ((LPNMLISTVIEW)lParam)->ptAction;
+				CList.ClientToScreen(&pt);
+				Launcher->GetCurrentCategory()->imLarge.DragEnter(null, pt);
+				m_bDragging = true;
+				SetCapture();
+				SetFocus();
+			} catch(...){}
 		}
 	}
 	return CFrameWnd::OnNotify(wParam, lParam, pResult);
@@ -276,6 +285,39 @@ void CLauncherWnd::StopDragging(CPoint* point){
 	ReleaseCapture();
 }
 
+void CLauncherWnd::OnDropFiles(HDROP hDropInfo){
+
+	WCHAR szItem[MAX_PATH];
+	for(int i = 0; DragQueryFileW(hDropInfo, i, szItem, _countof(szItem)); i++){
+		if(i >= 1){
+			SetForegroundWindow();
+			MessageBoxW(GetString(IDS_MULTIPLE_FILES_DESC).c_str(), GetString(IDS_MULTIPLE_FILES).c_str(), MB_OK | MB_ICONINFORMATION);
+			break;
+		}
+		SetForegroundWindow();
+		if(Launcher->vCategories.size() == 0){
+			MessageBoxW(GetString(IDS_NO_CATEGORY).c_str(), GetString(IDS_ERROR).c_str(), MB_ICONEXCLAMATION);
+			continue;
+		}
+		shared_ptr<CLauncherItem> pNewItem = make_shared<CLauncherItem>(nullptr, 0, L"", L"");
+		CBtnEditDlg dlg(pNewItem->props);
+		dlg.bNewButton = true;
+		dlg.m_csPath = szItem;
+		if(dlg.DoModal() == IDOK){
+			shared_ptr<CCategory> category = Launcher->vCategories.at(dlg.uCategory);
+			category->vItems.push_back(pNewItem);
+			pNewItem->ptrParent = category.get();
+			pNewItem->parentIndex = category->vItems.size() - 1;
+			category->imLarge.Add(pNewItem->LoadIcon(Launcher->options.IconSize));
+			category->imSmall.Add(pNewItem->LoadIcon(SMALL_ICON_SIZE));
+			pNewItem->InsertIntoListView();
+		}
+	}
+	DragFinish(hDropInfo);
+
+	//CFrameWnd::OnDropFiles(hDropInfo);
+}
+
 
 void CLauncherWnd::OnSize(UINT nType, int cx, int cy){
 	CFrameWnd::OnSize(nType, cx, cy);
@@ -289,11 +331,11 @@ void CLauncherWnd::OnSize(UINT nType, int cx, int cy){
 
 
 void CLauncherWnd::OnPaint(){
-	
+	CFrameWnd::OnPaint();
 	//CPaintDC dc(&CList); // device context for painting
 					   // TODO: Add your message handler code here
 					   // Do not call CFrameWnd::OnPaint() for painting messages
-	CDC* dc = CList.GetDC();
+	//CDC* dc = CList.GetDC();
 	//PAINTSTRUCT ps;
 	//HDC hdc = BeginPaint(hWnd, &ps);
 	//// TODO: Add any drawing code that uses hdc here...
@@ -303,19 +345,19 @@ void CLauncherWnd::OnPaint(){
 	//	TextOut(hdc, clientRect.right / 2 - 200, clientRect.bottom / 2 - 5, LoadLocalString(IDS_FIRST_STARTUP_TIP), 55);
 	//}
 
-	if(CTab.GetItemCount() == 0){
-		RECT clientRect;
-		GetClientRect(&clientRect);
-		//dc.TextOutW(clientRect.right / 2 - 200, clientRect.bottom / 2 - 5, LoadLocalString(IDS_FIRST_STARTUP_TIP), 55);
-		dc->SelectObject(GetStockObject(DEFAULT_GUI_FONT));
-		dc->DrawTextW(CString(GetString(IDS_FIRST_STARTUP_TIP).c_str()), &clientRect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-		CBrush tst = CBrush(RGB(255, 0, 0));
-		//dc->FillRect(&clientRect, &tst);
-	}
-
+	//if(CTab.GetItemCount() == 0){
+	//	RECT clientRect;
+	//	GetClientRect(&clientRect);
+	//	//dc.TextOutW(clientRect.right / 2 - 200, clientRect.bottom / 2 - 5, LoadLocalString(IDS_FIRST_STARTUP_TIP), 55);
+	//	dc->SelectObject(GetStockObject(DEFAULT_GUI_FONT));
+	//	dc->DrawTextW(GetString(IDS_FIRST_STARTUP_TIP).c_str(), &clientRect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+	//	//CBrush tst = CBrush(RGB(255, 0, 0));
+	//	//dc->FillRect(&clientRect, &tst);
+	//}
+	
 	//EndPaint(hWnd, &ps);
 	//return DefWindowProc(hWnd, message, wParam, lParam);
-	CFrameWnd::OnPaint();
+	
 }
 
 
@@ -333,6 +375,7 @@ BOOL CLauncherWnd::OnCommand(WPARAM wParam, LPARAM lParam){
 				break;
 			case IDM_REFRESH:
 				this->UpdateListView(true);
+				Launcher->RebuildIconCache();
 				break;
 			case IDM_SAVE:
 				Launcher->Save();
@@ -352,16 +395,16 @@ BOOL CLauncherWnd::OnCommand(WPARAM wParam, LPARAM lParam){
 			case IDM_POPUPCATEGORY_RENAME:
 				Launcher->GetCategory(m_clickedTab)->Rename();
 				break;
-			case IDM_CATEGORY_MOVELEFT:
+			case IDM_POPUPCATEGORY_MOVELEFT:
 				Launcher->GetCategory(m_clickedTab)->MoveTab(-1, true);
 				break;
-			case IDM_CATEGORY_MOVERIGHT:
+			case IDM_POPUPCATEGORY_MOVERIGHT:
 				Launcher->GetCategory(m_clickedTab)->MoveTab(1, true);
 				break;
-			case IDM_POPUPCATEGORY_MOVELEFT:
+			case IDM_CATEGORY_MOVELEFT:
 				Launcher->GetCurrentCategory()->MoveTab(-1, true);
 				break;
-			case IDM_POPUPCATEGORY_MOVERIGHT:
+			case IDM_CATEGORY_MOVERIGHT:
 				Launcher->GetCurrentCategory()->MoveTab(1, true);
 				break;
 			case IDM_BUTTON_ADDNEWBUTTON:
@@ -383,7 +426,6 @@ BOOL CLauncherWnd::OnCommand(WPARAM wParam, LPARAM lParam){
 				this->ResetListViewColumns();
 				break;
 			case IDM_EXIT:
-				Launcher->ExitInstance();
 				break;
 			case IDM_BUTTON_LAUNCH:
 				Launcher->GetCurrentCategory()->GetSelectedItem()->Launch();
@@ -437,7 +479,7 @@ void CLauncherWnd::OnCurCategoryMoveRight(){
 	//Launcher->GetCurrentCategory()->MoveTab(1, true);
 }
 void CLauncherWnd::OnExit(){
-	//Launcher->ExitInstance();
+	Launcher->ExitInstance();
 }
 void CLauncherWnd::OnAddNewButton(){
 	//Launcher->NewItem();

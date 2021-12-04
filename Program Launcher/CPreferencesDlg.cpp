@@ -180,8 +180,10 @@ void CPreferencesDlg::ApplyOptions(CProgramLauncher::_options& options, DWORD dw
 		CMainWnd->CList.SetExtendedStyle(dwStyle);
 	}
 	if(dwFilter & OPT_SIZE){
-		Launcher->GetCurrentCategory()->UpdateImageLists(options.IconSize);
-		CMainWnd->UpdateListView();
+		try{
+			Launcher->GetCurrentCategory()->UpdateImageLists(options.IconSize);
+			CMainWnd->UpdateListView();
+		} catch(...){}
 	}
 	if(dwFilter & OPT_SPACING){
 		CMainWnd->CList.SetIconSpacing(options.IconSpacingHorizontal, options.IconSpacingVertical);

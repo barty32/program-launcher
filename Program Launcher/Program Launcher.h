@@ -12,11 +12,9 @@
 // 
 // 
 // To-do list:
-// FIX: status bar
-// ADD: drop file support
-// FIX: show no category tip
 // 
 // FIX: remove grid in details view
+// ADD: copy/cut/paste handlers
 // ADD: launch shortcut
 // ADD: search function
 // ADD: auto folder scan
@@ -25,6 +23,7 @@
 // FIX: cancel tab reorder with ESC
 // ADD: support for UWP apps
 // ADD: helper ids to dialogs
+// ADD: helper ids to status bar
 // ADD: icons to tab control
 // ADD: icons to menu items
 // 
@@ -102,6 +101,7 @@
 //		- introduced new ini file searching algorithm
 //		- added status bar
 //		- used my new ini parser library
+//		- added drop file support
 //
 
 #pragma once
@@ -135,12 +135,13 @@
 //constants
 #define CATEGORY_NAME_LEN 128
 #define MAX_CATEGORY_SIZE 1024
+#define SMALL_ICON_SIZE   16
 
+//min and max values
 #define MIN_ICON_SIZE    16
 #define MAX_ICON_SIZE    256
 #define MIN_ICON_SPACING 20
 #define MAX_ICON_SPACING 300
-#define SMALL_ICON_SIZE  16
 
 //default values
 #define DEFAULT_ICON_SIZE        64
@@ -243,9 +244,9 @@ typedef struct tagTCORDERCHANGE{
 
 class TabControl;
 class CProgramLauncher;
-class CLauncherWnd;
-class CCategory;
-class CLauncherItem;
+	class CLauncherWnd;
+		class CCategory;
+			class CLauncherItem;
 
 //-------------------------------------------------------------------------------------------------------------------------
 // 
@@ -256,7 +257,6 @@ class CLauncherItem;
 GLOBAL HINSTANCE hInst;
 GLOBAL CProgramLauncher* Launcher;
 GLOBAL CLauncherWnd*     CMainWnd;
-//GLOBAL BOOL fRebuildIconCache;
 
 //-------------------------------------------------------------------------------------------------------------------------
 // 
@@ -265,9 +265,6 @@ GLOBAL CLauncherWnd*     CMainWnd;
 //-------------------------------------------------------------------------------------------------------------------------
 
 
-//window and dialog procedures
-INT_PTR CALLBACK BtnEditDlgProc(HWND, UINT, WPARAM, LPARAM);
-
 DWORD WINAPI LoadElements(LPVOID lParam);
 
 // Ini file functions (ini.c)
@@ -275,13 +272,15 @@ DWORD WINAPI LoadElements(LPVOID lParam);
 
 // Common funtions (CommonFunctions.c)
 bool Is64BitWindows      ();
-bool IsFileWritable      (const wchar_t* file_path);
-void CenterDialog        (HWND hwndParent, HWND hwndDialog);
+bool IsFileWritable      (const fs::path& filePath);
 void ErrorHandlerEx      (LONG wLine, LPCWSTR lpszFile, LPCWSTR lpszFunctionName);
 INT  GetIconIndexFromPath(LPWSTR pszIconPath);
 
+int ErrorMsg(const wstring& msg, const wstring& title = L"", UINT type = MB_ICONEXCLAMATION | MB_OK);
+int ErrorMsg(UINT msgID, UINT titleID = IDS_ERROR, UINT type = MB_ICONEXCLAMATION | MB_OK);
+
 // icon functions
-INT SaveIconFromResource(LPCWSTR lpszResourcePath, WORD iIconIndex, LPCWSTR lpszResultFileName);
+bool SaveIconFromResource(const fs::path& lpszResourcePath, WORD iIconIndex, const fs::path& lpszResultFileName);
 
 // string functions
 wstring ExpandEnvStrings(const wstring& source);
@@ -337,27 +336,34 @@ bool ReorderTab(UINT nSrcTab, UINT nDstTab);
 	afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
 };
 
-
+// CCustomListCtrl
+class CCustomListCtrl : public CListCtrl{
+	protected:
+	DECLARE_MESSAGE_MAP()
+	public:
+	afx_msg void OnPaint();
+};
 
 
 class CProgramLauncher : public CWinApp{
 	public:
 	vector<shared_ptr<CCategory>> vCategories;
 	IniParser* ini;
+	bool bRebuildIconCache = false;
 	
 	struct _options{
-		UINT ShowAppNames = DEFAULT_SHOWAPPNAMES;
-		bool CloseAfterLaunch = DEFAULT_CLOSEAFTERLAUNCH;
-		UINT WindowWidth = DEFAULT_WINDOW_WIDTH;
-		UINT WindowHeight = DEFAULT_WINDOW_HEIGHT;
-		bool UseIconCaching = DEFAULT_USEICONCACHING;
-
-		int IconSize = DEFAULT_ICON_SIZE;
+		UINT ShowAppNames =         DEFAULT_SHOWAPPNAMES;
+		bool CloseAfterLaunch =     DEFAULT_CLOSEAFTERLAUNCH;
+		UINT WindowWidth =          DEFAULT_WINDOW_WIDTH;
+		UINT WindowHeight =         DEFAULT_WINDOW_HEIGHT;
+		bool UseIconCaching =       DEFAULT_USEICONCACHING;
+		int IconSize =              DEFAULT_ICON_SIZE;
 		int IconSpacingHorizontal = DEFAULT_HORZ_SPACING;
-		int IconSpacingVertical = DEFAULT_VERT_SPACING;
+		int IconSpacingVertical =   DEFAULT_VERT_SPACING;
 	} options;
 
 	CProgramLauncher() noexcept;
+	~CProgramLauncher();
 
 // Overrides
 	virtual BOOL InitInstance();
@@ -378,7 +384,6 @@ class CProgramLauncher : public CWinApp{
 	DECLARE_MESSAGE_MAP()
 	afx_msg void OnAppAbout();
 };
-
 
 class CLauncherWnd : public CFrameWnd{
 
@@ -402,7 +407,7 @@ public:
 	void UpdateMenu(CMenu* menu);
 
 	// List view
-	CListCtrl CList;
+	CCustomListCtrl CList;
 	bool CreateListView();
 	void UpdateListView(bool bUpdateImageList = false);
 	void ResizeListView();
@@ -460,6 +465,7 @@ public:
 	afx_msg void OnResetColumns();
 	afx_msg void OnRefresh();
 	afx_msg void OnSave();
+	afx_msg void OnDropFiles(HDROP hDropInfo);
 };
 
 
@@ -507,7 +513,8 @@ public:
 	bool&   bAdmin = props.bAdmin;			//run program as admin
 	bool&   bAbsolute = props.bAbsolute;	//use absolute paths
 
-	HICON hItemIcon = nullptr;
+	HICON hItemIcon = null;
+	HICON hSmallIcon = null;
 
 	CLauncherItem(CCategory* ptrParent, const UINT parentIndex, const wstring& wsName, const wstring& wsPath, const wstring& wsPathIcon = L"", const int iIconIndex = 0, const wstring& wsPath64 = L"", const bool bAdmin = false, const bool bAbsolute = false);
 	CLauncherItem(CCategory* ptrParent, const UINT parentIndex, const ElementProps& props);

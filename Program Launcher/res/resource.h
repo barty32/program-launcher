@@ -47,6 +47,9 @@
 #define IDS_COL_ICON_INDEX              227
 #define IDS_COL_RUN_AS_ADMIN            228
 #define IDS_COL_ABS_PATHS               229
+#define IDS_MULTIPLE_FILES              230
+#define IDS_MULTIPLE_FILES_DESC         231
+#define IDS_INI_FAIL                    232
 #define IDM_CATEGORY_ADDCATEGORY        771
 #define IDM_BUTTON_ADDNEWBUTTON         772
 #define IDM_CATEGORY_MOVELEFT           773

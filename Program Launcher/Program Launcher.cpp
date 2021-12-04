@@ -20,7 +20,7 @@ CProgramLauncher theApp;
 
 
 CProgramLauncher::CProgramLauncher() noexcept{
-	hInst = GetModuleHandleW(nullptr);
+	hInst = GetModuleHandleW(null);
 	Launcher = this;
 
 	LPWSTR resultPath = null;
@@ -83,7 +83,7 @@ CProgramLauncher::CProgramLauncher() noexcept{
 		goto SUCCESS_APPDATA;
 	}
 
-	AfxMessageBox(L"Ini file could not be opened nor created. Any change you will make will not be saved. Program Launcher can crash at any time.");
+	AfxMessageBox(IDS_INI_FAIL);
 	ini = null;
 	return;
 
@@ -103,6 +103,10 @@ SUCCESS_APPDATA:
 	delete[] path;
 	delete[] expPath;
 	return;
+}
+
+CProgramLauncher::~CProgramLauncher(){
+	delete this->ini;
 }
 
 
@@ -155,8 +159,6 @@ BOOL CProgramLauncher::InitInstance(){
 	// create and load the frame with its resources
 	pFrame->LoadFrame(IDC_PROGRAMLAUNCHER, WS_OVERLAPPEDWINDOW, nullptr, nullptr);
 
-	pFrame->m_statusBar.Create(pFrame);
-
 	if(pFrame->CreateTabControl()){
 		pFrame->CreateListView();
 	}
@@ -177,7 +179,6 @@ BOOL CProgramLauncher::InitInstance(){
 int CProgramLauncher::ExitInstance(){
 
 	this->Save();
-	delete this->ini;
 
 	return CWinApp::ExitInstance();
 }
@@ -205,25 +206,23 @@ void CProgramLauncher::Save(){
 		str.pop_back();
 		ini->WriteString(L"categories", L"Categories", str.c_str());
 	}
+	else{
+		ini->DeleteKey(L"categories", L"Categories");
+	}
 
 	//save elements
-	//for(size_t i = 0; i < cat->vItems.size(); i++){
-		//	auto &item = cat->vItems[i];
-		//	ElementProps props;
-		//	props.wsName = item->wsName;
-		//	props.wsPath = item->wsPath;
-		//	props.wsPath64 = item->wsPath64;
-		//	props.wsPathIcon = item->wsPathIcon;
-		//	props.iIconIndex = item->iIconIndex;
-		//	props.bAdmin = item->bAdmin;
-		//	props.bAbsolute = item->bAbsolute;
-		//	SaveElementProperties(cat->wsCategoryName.c_str(), i, props);
-		//}
+	for(auto &cat : vCategories){
+		for(size_t i = 0; i < cat->vItems.size(); i++){
+			auto &item = cat->vItems[i];
+			SaveElementProperties(cat->wsCategoryName.c_str(), i, item->props);
+		}
+	}
 
-	//TODO: if(fRebuildIconCache){
+	if(bRebuildIconCache){
 		//::CreateThread(null, 0, RebuildIconCache, null, 0, 0);
-		//RebuildIconCache();
-	//}
+		RebuildIconCache();
+	}
+
 	ini->Flush();
 }
 
@@ -245,37 +244,25 @@ BOOL CAboutDlg::OnInitDialog(){
 	//center the dialog
 	CenterWindow();
 
-	WCHAR szExePath[MAX_PATH];
+	CString szExePath;
+	CString verData;
 	DWORD  verHandle = 0;
 	UINT   size = 0;
-	LPBYTE lpBuffer = null;
+	LPCWSTR lpVersion = null;
 
-	GetModuleFileNameW(hInst, szExePath, _countof(szExePath));
+	GetModuleFileNameW(hInst, szExePath.GetBuffer(MAX_PATH), MAX_PATH);
+	szExePath.ReleaseBuffer();
 
 	DWORD  verSize = GetFileVersionInfoSizeW(szExePath, &verHandle);
 	if(verSize == 0) return true;
 
-	LPWSTR verData = new WCHAR[verSize];
-	if(verData == null) return true;
-
-	if(GetFileVersionInfoW(szExePath, 0, verSize, verData)){
-		if(VerQueryValueW(verData, L"\\", (VOID FAR * FAR*) & lpBuffer, &size)){
-			if(size){
-				VS_FIXEDFILEINFO* verInfo = (VS_FIXEDFILEINFO*)lpBuffer;
-				if(verInfo->dwSignature == 0xfeef04bd){
-					_snwprintf_s(verData, verSize / sizeof(WCHAR), verSize, L"v%d.%d.%d",
-						(verInfo->dwFileVersionMS >> 16) & 0xffff,
-						(verInfo->dwFileVersionMS >> 0) & 0xffff,
-						(verInfo->dwFileVersionLS >> 16) & 0xffff//,
-						//(verInfo->dwFileVersionLS >> 0) & 0xffff
-					);
-				}
-			}
+	if(GetFileVersionInfoW(szExePath, 0, verSize, verData.GetBuffer(verSize))){
+		verData.ReleaseBuffer();
+		if(VerQueryValueW(verData, L"\\StringFileInfo\\000904b0\\ProductVersion", (LPVOID*)&lpVersion, &size)){
+			verData.Format(L"v%s", lpVersion);
 		}
 	}
-
 	GetDlgItem(IDC_ABOUT_VERSION)->SetWindowTextW(verData);
-	delete[] verData;
 	return true;
 }
 
@@ -307,4 +294,7 @@ void CProgramLauncher::OnAppAbout(){
 //		dc.DrawTextW(CString(GetString(IDS_FIRST_STARTUP_TIP).c_str()), &clientRect, DT_CENTER | DT_VCENTER);
 //	}
 //}
+
+
+
 

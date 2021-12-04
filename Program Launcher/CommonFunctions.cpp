@@ -53,13 +53,13 @@ bool SaveElementProperties(const wstring& categoryName, UINT iIndex, const Eleme
 		props.wsPathIcon = L"$path";
 	}
 
-	Launcher->ini->WriteString(categoryName, wstring(sIndex + L".Name"), props.wsName);
-	Launcher->ini->WriteString(categoryName, wstring(sIndex + L".Path"), props.wsPath);
-	Launcher->ini->WriteString(categoryName, wstring(sIndex + L".Path64"), props.wsPath64);
-	Launcher->ini->WriteString(categoryName, wstring(sIndex + L".PathIcon"), props.wsPathIcon);
-	Launcher->ini->WriteInt(categoryName, wstring(sIndex + L".IconIndex"), props.iIconIndex);
-	Launcher->ini->WriteInt(categoryName, wstring(sIndex + L".Admin"), props.bAdmin);
-	Launcher->ini->WriteInt(categoryName, wstring(sIndex + L".AbsolutePaths"), props.bAbsolute);
+	Launcher->ini->WriteString(categoryName, sIndex + L".Name", props.wsName);
+	Launcher->ini->WriteString(categoryName, sIndex + L".Path", props.wsPath);
+	Launcher->ini->WriteString(categoryName, sIndex + L".Path64", props.wsPath64);
+	Launcher->ini->WriteString(categoryName, sIndex + L".PathIcon", props.wsPathIcon);
+	Launcher->ini->WriteInt(categoryName, sIndex + L".IconIndex", props.iIconIndex);
+	Launcher->ini->WriteInt(categoryName, sIndex + L".Admin", props.bAdmin);
+	Launcher->ini->WriteInt(categoryName, sIndex + L".AbsolutePaths", props.bAbsolute);
 	return true;
 }
 
@@ -122,13 +122,13 @@ wstring ExpandEnvStrings(const wstring &source){
 
 bool CProgramLauncher::NewItem(){
 	if(vCategories.size() == 0){
-		CMainWnd->MessageBoxW(GetString(IDS_NO_CATEGORY).c_str(), GetString(IDS_ERROR).c_str(), MB_ICONEXCLAMATION);
+		ErrorMsg(IDS_NO_CATEGORY, IDS_ERROR);
 		return false;
 	}
 	shared_ptr<CLauncherItem> pNewItem = make_shared<CLauncherItem>(nullptr, 0, L"", L"");
 	CBtnEditDlg dlg(pNewItem->props);
 	dlg.bNewButton = true;
-	if(dlg.DoModal()){
+	if(dlg.DoModal() == IDOK){
 		shared_ptr<CCategory> category = vCategories.at(dlg.uCategory);
 		category->vItems.push_back(pNewItem);
 		pNewItem->ptrParent = category.get();
@@ -136,6 +136,7 @@ bool CProgramLauncher::NewItem(){
 		category->imLarge.Add(pNewItem->LoadIcon(Launcher->options.IconSize));
 		category->imSmall.Add(pNewItem->LoadIcon(SMALL_ICON_SIZE));
 		pNewItem->InsertIntoListView();
+		Launcher->bRebuildIconCache = true;
 		return true;
 	}
 	return false;
@@ -223,6 +224,14 @@ INT GetIconIndexFromPath(LPWSTR pszIconPath){
 		}
 	}
 	return iIconIndex;
+}
+
+int ErrorMsg(const wstring& msg, const wstring& title, UINT type){
+	return MessageBoxW(CMainWnd->GetSafeHwnd(), msg.c_str(), title.c_str(), type);
+}
+
+int ErrorMsg(UINT msgID, UINT titleID, UINT type){
+	return MessageBoxW(CMainWnd->GetSafeHwnd(), GetString(msgID).c_str(), GetString(titleID).c_str(), type);
 }
 
 
@@ -433,42 +442,12 @@ bool Is64BitWindows(){
 #endif
 }
 
-
-bool IsFileWritable(const wchar_t* file_path){
-	FILE* file_handle;
-	if(_wfopen_s(&file_handle, file_path, L"a") || !file_handle){
+bool IsFileWritable(const fs::path& filePath){
+	FILE* hFile;
+	if(_wfopen_s(&hFile, filePath.c_str(), L"a") || !hFile){
 		return false;
 	}
-	fclose(file_handle);
+	fclose(hFile);
 	return true;
-}
-
-//
-// @brief Centers hwndDialog in hwndParent
-// @param hwndParent - Handle to parent window
-// @param hwndDialog - Handle to dialog to be centered
-//
-void CenterDialog(HWND hwndParent, HWND hwndDialog){
-	//center the dialog
-	RECT rectWindow, rectParent;
-	GetWindowRect(hwndDialog, &rectWindow);
-	GetWindowRect(hwndParent, &rectParent);
-
-	int nWidth = rectWindow.right - rectWindow.left;
-	int nHeight = rectWindow.bottom - rectWindow.top;
-
-	int nX = ((rectParent.right - rectParent.left) - nWidth) / 2 + rectParent.left;
-	int nY = ((rectParent.bottom - rectParent.top) - nHeight) / 2 + rectParent.top;
-
-	int nScreenWidth = GetSystemMetrics(SM_CXSCREEN);
-	int nScreenHeight = GetSystemMetrics(SM_CYSCREEN);
-
-	// make sure that the dialog box never moves outside of the screen
-	if(nX < 0) nX = 0;
-	if(nY < 0) nY = 0;
-	if(nX + nWidth > nScreenWidth) nX = nScreenWidth - nWidth;
-	if(nY + nHeight > nScreenHeight) nY = nScreenHeight - nHeight;
-
-	MoveWindow(hwndDialog, nX, nY, nWidth, nHeight, FALSE);
 }
 

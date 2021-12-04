@@ -75,7 +75,7 @@ using std::vector,
       std::make_unique,
       std::make_shared;
 
-
+namespace fs = std::filesystem;
 
 #ifdef _UNICODE
 #if defined _M_IX86
