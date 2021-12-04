@@ -66,11 +66,11 @@ specifies where to show entry labels, 0=don't show, 1=in tooltip, 2=under icon &
 
 Since version 2.2 this section contains three more keys:
 
-- `ListViewMode`: last list view state 0=large icons, 1=small icons, 2=list, 2=details
+- `ListViewMode`: last list view state 0=large icons, 1=details, 2=small icons, 3=list
 - `ColumnWidths`, `ColumnOrder`: widths and order of columns in details mode
 
 `[appereance]`
-- `IconSize`: size of icons in pixels, it's better to use one of standard icon sizes (16, 24, 32, 48, 64, 128 and 256 pixels)
+- `IconSize`: size of icons in pixels, it's better to use one of standard icon sizes (16, 24, 32, 48, 64, 128 or 256)
 - `IconSpacingHorizontal`, `IconSpacingVertical`: icon spacing, in pixels
 
 `[categories]`

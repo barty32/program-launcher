@@ -1,0 +1,82 @@
+To-do list:
+
+	FIX: remove grid in details view
+	ADD: copy/cut/paste handlers
+	ADD: launch shortcut
+	ADD: search function
+	ADD: auto folder scan
+	ADD: sort options
+	FIX: reordering multiline tabs
+	FIX: cancel tab reorder with ESC
+	ADD: support for UWP apps
+	ADD: helper ids to dialogs
+	ADD: helper ids to status bar
+	ADD: icons to tab control
+	ADD: icons to menu items
+
+
+Changelog:
+ v2.0.1: (14.4.2021)
+		- fixed adding button with empty fields
+		- fixed blurry icons
+		- fixed category name delimiters
+ 
+ v2.0.2: (18.4.2021)
+		- fixed - preferences spin controls doesn't work
+		- (not needed) add enter handler to preferences' edit boxes
+		- improved slider / edit / spin controls in preferences
+		- target program now launches in its directory instead of launching in Program Launcher's directory
+		- aligned items in dialogs
+		- added version info
+		- when you use Browse in Add button dialog Display name is auto-filled if empty
+		- when you use Browse in Add button dialog Absolute paths is checked automatically
+		- fixed category rename
+		- made proper error handlers
+ 
+ v2.1.0: (21.4.2021)
+		- added icon caching
+ 
+ v2.1.1: (26.4.2021)
+		- fixed tab order in dialogs
+		- added proper icon
+		- added enter handler in main window
+		- code cleanup
+		- improved ini file functions -> improved performance
+		- rewrited most of functions for better performance
+		- remove category message box now contains category name
+		- fixed string buffer lenghts (used heap)
+		- fixed adding folders
+		- added checking for 16-bit and 64-bit executables
+		- added support for paths with enviromnent variables
+ 
+ v2.1.2: (29.5.2021)
+		- add category dialog: blocked special characters
+		- add category dialog: fixed title
+		- rename category menu item now works
+		- improved context menu handlers (now works with keyboard)
+		- added columns to details view
+		- moved strings to string table
+		- added accelerators and full keyboard support
+		- fixed scrollbar displaying on right
+		- configuration file and icon cache files are saved to %AppData%\Program Launcher\ 
+			if they cannot be saved to default directory
+ 
+ v2.1.3: (6.11.2021)
+		- superseded by 2.2 version
+		- last release written in C
+ 
+ v2.2: (4.12.2021)
+		- whole app rewritten from C to object-oriented C++ with MFC
+		- added drag and drop tab reordering
+		- items are loaded in separate thread
+		- added tooltips on buttons (tooltip mode in preferences is now available)
+		- changed default icon size and spacing
+		- added in-place editing of items
+		- changed tab control font
+		- current list view mode is saved on close
+		- list view column widths and order are saved on close
+		- added drag and drop item reordering
+		- introduced new ini file searching algorithm
+		- added status bar
+		- used my new ini parser library
+		- added drop file support
