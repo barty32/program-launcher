@@ -1,4 +1,8 @@
 // CPreferencesDlg.cpp : implementation file
+// 
+// 
+// #include "LICENSE"
+// 
 //
 
 #include "pch.h"

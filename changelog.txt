@@ -13,6 +13,12 @@ To-do list:
 	ADD: helper ids to status bar
 	ADD: icons to tab control
 	ADD: icons to menu items
+	
+Issues:
+	Buggy icons in first element in new category
+	Remember last category
+	Ini file creation test text
+	Expand environment variables in icon path
 
 
 Changelog:

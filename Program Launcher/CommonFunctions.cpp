@@ -1,7 +1,7 @@
-//CommonFunctions.c
+// CommonFunctions.c
 //
 //
-//
+// #include "LICENSE"
 //
 //
 #include "pch.h"

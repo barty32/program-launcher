@@ -1,3 +1,7 @@
+// Modified implementation of Drag and Drop tab control
+//
+// Original source: http://www.suodenjoki.dk/us/productions/articles/dragdroptab.htm
+//
 
 #include "pch.h"
 #include "Program Launcher.h"

@@ -8,6 +8,8 @@
 //
 //  This file contains functions related to main window (WinMain, init functions and window procedure)
 //
+// 
+// #include "LICENSE"
 //
 
 #include "pch.h"

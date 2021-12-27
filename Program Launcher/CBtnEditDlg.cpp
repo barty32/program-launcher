@@ -1,5 +1,7 @@
 // CBtnEditDlg.cpp : implementation file
 //
+// #include "LICENSE"
+//
 
 #include "pch.h"
 #include "Program Launcher.h"
