@@ -17,6 +17,7 @@
 //		INT RebuildIconCache();
 // 
 // Copyright ©2021, barty12
+// #include "LICENSE"
 //
 
 #include "pch.h"

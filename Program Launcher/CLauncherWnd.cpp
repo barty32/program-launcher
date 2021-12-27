@@ -1,4 +1,7 @@
 // CLauncherWnd.cpp : implementation of the CMainWnd class
+// 
+// #include "LICENSE"
+// 
 //
 
 #include "pch.h"
